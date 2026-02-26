@@ -23,17 +23,20 @@ class AuthRepositoryImpl implements AuthRepository {
 
     AuthSession.saveCookieFromHeaders(response.headers);
 
-    final Map<String, dynamic> data =
-        jsonDecode(response.body) as Map<String, dynamic>;
-    final message = data['message'];
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) {
+      throw Exception('Invalid login response');
+    }
 
-    if (message is Map<String, dynamic> && message['status'] == 'success') {
-      final sid = message['sid']?.toString();
+    final payload = _extractPayload(decoded);
+    final status = payload['status']?.toString().toLowerCase();
+    if (status == 'success' || !payload.containsKey('status')) {
+      final sid = payload['sid']?.toString();
       if (sid != null && sid.isNotEmpty) {
         AuthSession.saveCookie('sid=$sid');
       }
 
-      final token = message['token']?.toString();
+      final token = payload['token']?.toString();
       if (token != null && token.isNotEmpty) {
         AuthSession.saveToken(token);
       }
@@ -44,10 +47,20 @@ class AuthRepositoryImpl implements AuthRepository {
       }
 
       AppLogger.auth('auth repository: login completed successfully');
-      return User.fromJson(message);
+      return User.fromJson(payload);
     }
 
-    throw Exception('Login failed');
+    throw Exception(payload['message']?.toString() ?? 'Login failed');
+  }
+
+  Map<String, dynamic> _extractPayload(Map<String, dynamic> decoded) {
+    final message = decoded['message'];
+    if (message is Map<String, dynamic>) return message;
+
+    final data = decoded['data'];
+    if (data is Map<String, dynamic>) return data;
+
+    return decoded;
   }
 
   Future<void> _establishSession(String email, String password) async {

@@ -111,9 +111,9 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       await file.writeAsBytes(bytes, flush: true);
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Downloaded: ${file.path}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Downloaded: ${file.path}')));
     } on MissingPluginException {
       _showError('Required plugin not registered. Rebuild app fully.');
     } catch (e) {
@@ -134,9 +134,9 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -153,168 +153,179 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Text(
-                      _error!,
-                      style: const TextStyle(color: Colors.red),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                )
-              : details == null
-                  ? const Center(child: Text('No task details found'))
-                  : RefreshIndicator(
-                      onRefresh: _loadTaskDetails,
-                      child: ListView(
-                        padding: const EdgeInsets.all(16),
-                        children: [
-                          _TaskHeader(details: details),
-                          const SizedBox(height: 14),
-                          const _SectionTitle('Child Follow'),
-                          if (details.childFollow.isEmpty)
-                            const _EmptyCard(label: 'No child follow records')
-                          else
-                            ...details.childFollow.map(
-                              (item) => Card(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              item.followUp.isNotEmpty
-                                                  ? item.followUp
-                                                  : (item.title.isNotEmpty
-                                                        ? item.title
-                                                        : item.name),
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                          ),
-                                          Text(
-                                            '${item.progress.toStringAsFixed(0)}%',
-                                            style: TextStyle(
-                                              color: _progressColor(item.progress),
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ],
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  _error!,
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            )
+          : details == null
+          ? const Center(child: Text('No task details found'))
+          : RefreshIndicator(
+              onRefresh: _loadTaskDetails,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  _TaskHeader(details: details),
+                  const SizedBox(height: 14),
+                  const _SectionTitle('Child Follow'),
+                  if (details.childFollow.isEmpty)
+                    const _EmptyCard(label: 'No child follow records')
+                  else
+                    ...details.childFollow.map(
+                      (item) => Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      item.followUp.isNotEmpty
+                                          ? item.followUp
+                                          : (item.title.isNotEmpty
+                                                ? item.title
+                                                : item.name),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w700,
                                       ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        'Date: ${_displayDate(item.dateFollow.isNotEmpty ? item.dateFollow : item.dueDate)} ${item.timeFollow}',
-                                      ),
-                                      if (item.registrationDateTime.isNotEmpty)
-                                        Text(
-                                          'Registered: ${_displayDateTime(item.registrationDateTime)}',
-                                          style: const TextStyle(
-                                            color: Colors.black54,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      if (item.attachment.isNotEmpty)
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                'Attachment: ${item.attachment}',
-                                                style: const TextStyle(
-                                                  color: Colors.blueGrey,
-                                                  fontSize: 12,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                            IconButton(
-                                              tooltip: 'Open',
-                                              onPressed: () => _openAttachment(item.attachment),
-                                              icon: const Icon(
-                                                Icons.open_in_new_rounded,
-                                                size: 18,
-                                              ),
-                                            ),
-                                            IconButton(
-                                              tooltip: 'Download',
-                                              onPressed: _downloadingAttachments.contains(item.attachment)
-                                                  ? null
-                                                  : () => _downloadAttachment(item.attachment),
-                                              icon: _downloadingAttachments.contains(item.attachment)
-                                                  ? const SizedBox(
-                                                      width: 16,
-                                                      height: 16,
-                                                      child: CircularProgressIndicator(strokeWidth: 2),
-                                                    )
-                                                  : const Icon(
-                                                      Icons.download_rounded,
-                                                      size: 18,
-                                                    ),
-                                            ),
-                                          ],
-                                        ),
-                                      const SizedBox(height: 8),
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(999),
-                                        child: LinearProgressIndicator(
-                                          value: item.progress.clamp(0, 100) / 100,
-                                          minHeight: 7,
-                                          color: _progressColor(item.progress),
-                                          backgroundColor: const Color(0xFFE2E8F0),
-                                        ),
-                                      ),
-                                    ],
+                                    ),
+                                  ),
+                                  Text(
+                                    '${item.progress.toStringAsFixed(0)}%',
+                                    style: TextStyle(
+                                      color: _progressColor(item.progress),
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Date: ${_displayDate(item.dateFollow.isNotEmpty ? item.dateFollow : item.dueDate)} ${item.timeFollow}',
+                              ),
+                              if (item.registrationDateTime.isNotEmpty)
+                                Text(
+                                  'Registered: ${_displayDateTime(item.registrationDateTime)}',
+                                  style: const TextStyle(
+                                    color: Colors.black54,
+                                    fontSize: 12,
                                   ),
                                 ),
-                              ),
-                            ),
-                          const SizedBox(height: 10),
-                          const _SectionTitle('Activity Log'),
-                          if (details.activityLog.isEmpty)
-                            const _EmptyCard(label: 'No activity yet')
-                          else
-                            ...details.activityLog.map(
-                              (log) => Card(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              log.commentBy,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                          ),
-                                          Text(
-                                            _displayDateTime(log.creation),
-                                            style: const TextStyle(
-                                              color: Colors.black54,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ],
+                              if (item.attachment.isNotEmpty)
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'Attachment: ${item.attachment}',
+                                        style: const TextStyle(
+                                          color: Colors.blueGrey,
+                                          fontSize: 12,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      const SizedBox(height: 8),
-                                      Text(_stripHtml(log.content)),
-                                    ],
-                                  ),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Open',
+                                      onPressed: () =>
+                                          _openAttachment(item.attachment),
+                                      icon: const Icon(
+                                        Icons.open_in_new_rounded,
+                                        size: 18,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Download',
+                                      onPressed:
+                                          _downloadingAttachments.contains(
+                                            item.attachment,
+                                          )
+                                          ? null
+                                          : () => _downloadAttachment(
+                                              item.attachment,
+                                            ),
+                                      icon:
+                                          _downloadingAttachments.contains(
+                                            item.attachment,
+                                          )
+                                          ? const SizedBox(
+                                              width: 16,
+                                              height: 16,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                          : const Icon(
+                                              Icons.download_rounded,
+                                              size: 18,
+                                            ),
+                                    ),
+                                  ],
+                                ),
+                              const SizedBox(height: 8),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(999),
+                                child: LinearProgressIndicator(
+                                  value: item.progress.clamp(0, 100) / 100,
+                                  minHeight: 7,
+                                  color: _progressColor(item.progress),
+                                  backgroundColor: const Color(0xFFE2E8F0),
                                 ),
                               ),
-                            ),
-                        ],
+                            ],
+                          ),
+                        ),
                       ),
                     ),
+                  const SizedBox(height: 10),
+                  const _SectionTitle('Activity Log'),
+                  if (details.activityLog.isEmpty)
+                    const _EmptyCard(label: 'No activity yet')
+                  else
+                    ...details.activityLog.map(
+                      (log) => Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      log.commentBy,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    _displayDateTime(log.creation),
+                                    style: const TextStyle(
+                                      color: Colors.black54,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(_stripHtml(log.content)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
     );
   }
 }
@@ -424,9 +435,9 @@ class _AddFollowUpPageState extends State<AddFollowUpPage> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -442,9 +453,9 @@ class _AddFollowUpPageState extends State<AddFollowUpPage> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -622,7 +633,10 @@ class _TaskHeader extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Progress', style: TextStyle(fontWeight: FontWeight.w600)),
+                const Text(
+                  'Progress',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
                 Text(
                   '${percent.toStringAsFixed(0)}%',
                   style: TextStyle(color: color, fontWeight: FontWeight.w700),
@@ -673,10 +687,7 @@ class _EmptyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Text(label),
-      ),
+      child: Padding(padding: const EdgeInsets.all(14), child: Text(label)),
     );
   }
 }

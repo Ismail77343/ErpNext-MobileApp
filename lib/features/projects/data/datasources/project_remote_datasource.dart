@@ -16,20 +16,17 @@ class ProjectRemoteDataSource {
       'project remote datasource: GET projects start=$start limit=$limit',
     );
     final uri = ApiConstants.uri(ApiConstants.projectsEndpoint).replace(
-      queryParameters: {
-        'limit_start': '$start',
-        'limit_page_length': '$limit',
-      },
+      queryParameters: {'limit_start': '$start', 'limit_page_length': '$limit'},
     );
-    final response = await http.get(
-      uri,
-      headers: AuthSession.authHeaders(),
-    );
+    final response = await http.get(uri, headers: AuthSession.authHeaders());
     AppLogger.project(
       'project remote datasource: response ${response.statusCode}',
     );
 
     if (response.statusCode != 200) {
+      AppLogger.error(
+        'projects GET failed body: ${response.body.substring(0, response.body.length > 350 ? 350 : response.body.length)}',
+      );
       throw Exception('Failed to load projects: ${response.statusCode}');
     }
 
@@ -55,9 +52,9 @@ class ProjectRemoteDataSource {
 
   Future<ProjectDetailsModel> getProjectDetails(String projectName) async {
     AppLogger.project('project details request start: $projectName');
-    final uri = ApiConstants.uri(ApiConstants.projectDetailsEndpoint).replace(
-      queryParameters: {'project_name': projectName},
-    );
+    final uri = ApiConstants.uri(
+      ApiConstants.projectDetailsEndpoint,
+    ).replace(queryParameters: {'project_name': projectName});
 
     var response = await http.get(uri, headers: AuthSession.authHeaders());
     AppLogger.project('project details GET response: ${response.statusCode}');
@@ -71,7 +68,9 @@ class ProjectRemoteDataSource {
         headers: AuthSession.authHeaders(withJson: false),
         body: {'project_name': projectName},
       );
-      AppLogger.project('project details POST response: ${response.statusCode}');
+      AppLogger.project(
+        'project details POST response: ${response.statusCode}',
+      );
     }
 
     if (response.statusCode != 200) {
@@ -94,9 +93,9 @@ class ProjectRemoteDataSource {
 
   Future<TaskDetailsModel> getTaskDetails(String taskName) async {
     AppLogger.project('task details request start: $taskName');
-    final uri = ApiConstants.uri(ApiConstants.taskDetailsEndpoint).replace(
-      queryParameters: {'task_name': taskName},
-    );
+    final uri = ApiConstants.uri(
+      ApiConstants.taskDetailsEndpoint,
+    ).replace(queryParameters: {'task_name': taskName});
 
     var response = await http.get(uri, headers: AuthSession.authHeaders());
     AppLogger.project('task details GET response: ${response.statusCode}');
@@ -158,7 +157,8 @@ class ProjectRemoteDataSource {
         'time_follow': timeFollow,
         'progress': '$progress',
         'follow_up': followUp,
-        if (attachment != null && attachment.isNotEmpty) 'attachment': attachment,
+        if (attachment != null && attachment.isNotEmpty)
+          'attachment': attachment,
       },
     );
 
@@ -174,7 +174,9 @@ class ProjectRemoteDataSource {
       if (payload is Map<String, dynamic>) {
         final status = payload['status']?.toString().toLowerCase();
         if (status == 'error') {
-          throw Exception(payload['message']?.toString() ?? 'Add follow up failed');
+          throw Exception(
+            payload['message']?.toString() ?? 'Add follow up failed',
+          );
         }
       }
     }
@@ -261,18 +263,24 @@ class ProjectRemoteDataSource {
 
   Map<String, dynamic>? _extractDetailsMap(dynamic decoded) {
     if (decoded is Map<String, dynamic>) {
-      if (decoded['data'] is Map<String, dynamic>) {
-        return decoded['data'] as Map<String, dynamic>;
-      }
-
-      if (decoded['message'] is Map<String, dynamic>) {
-        return decoded['message'] as Map<String, dynamic>;
-      }
-
-      if (decoded['result'] is Map<String, dynamic>) {
-        return decoded['result'] as Map<String, dynamic>;
+      final payload = _extractMapPayload(decoded);
+      if (payload.isNotEmpty) {
+        return payload;
       }
     }
     return null;
+  }
+
+  Map<String, dynamic> _extractMapPayload(Map<String, dynamic> decoded) {
+    final data = decoded['data'];
+    if (data is Map<String, dynamic>) return data;
+
+    final message = decoded['message'];
+    if (message is Map<String, dynamic>) return message;
+
+    final result = decoded['result'];
+    if (result is Map<String, dynamic>) return result;
+
+    return decoded;
   }
 }
