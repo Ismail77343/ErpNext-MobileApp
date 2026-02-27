@@ -26,6 +26,14 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>We use camera to attach images for the AI advisor.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We use microphone for voice conversation with the AI advisor.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We use photos to attach images for the AI advisor.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>We use speech recognition to convert your voice to text.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -8,6 +8,7 @@ import '../../../home/presentation/pages/home_page.dart';
 import '../../../projects/presentation/pages/projects_page.dart';
 import '../../../purchases/presentation/pages/purchases_page.dart';
 import '../../../sales/presentation/pages/sales_page.dart';
+import '../../../ai_advisor/presentation/pages/ai_advisor_page.dart';
 
 class MainShellPage extends StatefulWidget {
   const MainShellPage({super.key});
@@ -19,7 +20,13 @@ class MainShellPage extends StatefulWidget {
 class _MainShellPageState extends State<MainShellPage> {
   int _index = 0;
 
-  static const _titles = ["Home", "Projects", "Sales", "Purchases"];
+  static const _titles = [
+    "Home",
+    "Projects",
+    "Sales",
+    "Purchases",
+    "Smart Advisor",
+  ];
 
   void _goTo(int i) {
     setState(() => _index = i);
@@ -47,6 +54,7 @@ class _MainShellPageState extends State<MainShellPage> {
       const ProjectsPage(embedded: true),
       const SalesPage(embedded: true),
       const PurchasesPage(embedded: true),
+      const AiAdvisorPage(embedded: true),
     ];
 
     return Scaffold(
@@ -82,6 +90,11 @@ class _MainShellPageState extends State<MainShellPage> {
                 leading: const Icon(Icons.shopping_bag_outlined),
                 title: const Text("Purchases"),
                 onTap: () => _goTo(3),
+              ),
+              ListTile(
+                leading: const Icon(Icons.smart_toy_outlined),
+                title: const Text("Smart Advisor"),
+                onTap: () => _goTo(4),
               ),
               const Divider(),
               ListTile(
@@ -131,6 +144,10 @@ class _MainShellPageState extends State<MainShellPage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.shopping_bag_outlined),
             label: "Purchases",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.smart_toy_outlined),
+            label: "AI",
           ),
         ],
       ),
