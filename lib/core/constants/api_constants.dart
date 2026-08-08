@@ -1,5 +1,5 @@
 class ApiConstants {
-  static const String baseUrl = "http://192.168.100.107:8000";
+  static const String baseUrl = "https://erp.tecpalace.com.sa";
 
   static const String loginEndpoint = "/api/method/mobile_api.api.login";
   static const String sessionLoginEndpoint = "/api/method/login";
@@ -73,6 +73,10 @@ class ApiConstants {
       "/api/method/mobile_api.api.send_quotation_for_approval";
   static const String returnQuotationWorkflowEndpoint =
       "/api/method/mobile_api.api.return_quotation_workflow";
+  static const String workflowNotificationsEndpoint =
+      "/api/method/mobile_api.api.get_workflow_notifications";
+  static const String workflowNotificationsSummaryEndpoint =
+      "/api/method/mobile_api.api.get_workflow_notifications_summary";
   static const String searchLinkEndpoint =
       "/api/method/frappe.desk.search.search_link";
 

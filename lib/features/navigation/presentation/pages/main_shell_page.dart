@@ -9,6 +9,8 @@ import '../../../projects/presentation/pages/projects_page.dart';
 import '../../../purchases/presentation/pages/purchases_page.dart';
 import '../../../sales/presentation/pages/sales_page.dart';
 import '../../../ai_advisor/presentation/pages/ai_advisor_page.dart';
+import '../../../workflow_notifications/presentation/pages/workflow_notifications_page.dart';
+import '../../../workflow_notifications/presentation/providers/workflow_notifications_provider.dart';
 
 class MainShellPage extends StatefulWidget {
   const MainShellPage({super.key});
@@ -19,6 +21,15 @@ class MainShellPage extends StatefulWidget {
 
 class _MainShellPageState extends State<MainShellPage> {
   int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<WorkflowNotificationsProvider>().initialize();
+    });
+  }
 
   static const _titles = [
     "Home",
@@ -45,6 +56,7 @@ class _MainShellPageState extends State<MainShellPage> {
 
   @override
   Widget build(BuildContext context) {
+    final workflowNotifications = context.watch<WorkflowNotificationsProvider>();
     final pages = [
       HomePage(
         embedded: true,
@@ -60,6 +72,47 @@ class _MainShellPageState extends State<MainShellPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_titles[_index]),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const WorkflowNotificationsPage(),
+                ),
+              );
+            },
+            icon: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const Icon(Icons.notifications_none_rounded),
+                if (workflowNotifications.unreadCount > 0)
+                  Positioned(
+                    right: -6,
+                    top: -6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        '${workflowNotifications.unreadCount}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
       drawer: Drawer(
         child: SafeArea(

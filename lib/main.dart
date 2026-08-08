@@ -47,6 +47,11 @@ import 'features/sales/opportunity/domain/usecases/upload_opportunity_attachment
 import 'features/sales/opportunity/presentation/providers/opportunities_provider.dart';
 import 'features/sales/opportunity/presentation/providers/opportunity_details_provider.dart';
 import 'features/sales/opportunity/presentation/providers/opportunity_form_provider.dart';
+import 'features/workflow_notifications/data/datasources/workflow_notifications_remote_datasource.dart';
+import 'features/workflow_notifications/data/repositories/workflow_notifications_repository_impl.dart';
+import 'features/workflow_notifications/domain/usecases/get_workflow_notifications_summary_usecase.dart';
+import 'features/workflow_notifications/domain/usecases/get_workflow_notifications_usecase.dart';
+import 'features/workflow_notifications/presentation/providers/workflow_notifications_provider.dart';
 
 void main() {
   final authRepo = AuthRepositoryImpl();
@@ -95,6 +100,16 @@ void main() {
       SearchOpportunityLinkOptionsUseCase(opportunitiesRepo);
   final uploadOpportunityAttachmentUseCase =
       UploadOpportunityAttachmentUseCase(opportunitiesRepo);
+  final workflowNotificationsRemoteDataSource =
+      WorkflowNotificationsRemoteDataSource();
+  final workflowNotificationsRepo = WorkflowNotificationsRepositoryImpl(
+    workflowNotificationsRemoteDataSource,
+  );
+  final getWorkflowNotificationsUseCase = GetWorkflowNotificationsUseCase(
+    workflowNotificationsRepo,
+  );
+  final getWorkflowNotificationsSummaryUseCase =
+      GetWorkflowNotificationsSummaryUseCase(workflowNotificationsRepo);
 
   runApp(
     MultiProvider(
@@ -150,6 +165,12 @@ void main() {
             createOpportunityUseCase,
             updateOpportunityUseCase,
             searchOpportunityLinkOptionsUseCase,
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => WorkflowNotificationsProvider(
+            getWorkflowNotificationsUseCase,
+            getWorkflowNotificationsSummaryUseCase,
           ),
         ),
       ],
