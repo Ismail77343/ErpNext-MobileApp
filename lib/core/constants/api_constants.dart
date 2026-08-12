@@ -1,5 +1,6 @@
 class ApiConstants {
-  static const String baseUrl = "https://erp.tecpalace.com.sa";
+  static const String baseUrl = "http://192.168.100.107:8000";
+  static const String localDevelopmentBaseUrl = "http://192.168.100.107:8000";
 
   static const String loginEndpoint = "/api/method/mobile_api.api.login";
   static const String sessionLoginEndpoint = "/api/method/login";
@@ -11,8 +12,7 @@ class ApiConstants {
       "/api/method/mobile_api.api.get_task_details";
   static const String addFollowUpEndpoint =
       "/api/method/mobile_api.api.add_follow_up";
-  static const String leadsEndpoint =
-      "/api/method/mobile_api.api.get_leads";
+  static const String leadsEndpoint = "/api/method/mobile_api.api.get_leads";
   static const String leadDetailsEndpoint =
       "/api/method/mobile_api.api.get_lead_details";
   static const String leadRequiredFieldsEndpoint =
@@ -77,6 +77,14 @@ class ApiConstants {
       "/api/method/mobile_api.api.get_workflow_notifications";
   static const String workflowNotificationsSummaryEndpoint =
       "/api/method/mobile_api.api.get_workflow_notifications_summary";
+  static const String hrAttendanceContextEndpoint =
+      "/api/method/mobile_api.api.get_hr_attendance_context";
+  static const String mobileDeviceVerificationStatusEndpoint =
+      "/api/method/mobile_api.api.get_mobile_device_verification_status";
+  static const String requestMobileDeviceVerificationEndpoint =
+      "/api/method/mobile_api.api.request_mobile_device_verification";
+  static const String mobileEmployeeCheckinEndpoint =
+      "/api/method/mobile_api.api.mobile_employee_checkin";
   static const String searchLinkEndpoint =
       "/api/method/frappe.desk.search.search_link";
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../hr/presentation/pages/hr_page.dart';
 import '../../../projects/presentation/pages/project_details_page.dart';
 import '../../../projects/presentation/pages/projects_page.dart';
 import '../../../projects/presentation/providers/projects_provider.dart';
@@ -11,12 +12,14 @@ class HomePage extends StatefulWidget {
   final bool? embedded;
   final VoidCallback? onOpenProjectsTab;
   final VoidCallback? onOpenSalesTab;
+  final VoidCallback? onOpenHrTab;
 
   const HomePage({
     super.key,
     this.embedded,
     this.onOpenProjectsTab,
     this.onOpenSalesTab,
+    this.onOpenHrTab,
   });
 
   @override
@@ -124,6 +127,24 @@ class _HomePageState extends State<HomePage> {
                 );
               },
             ),
+            const SizedBox(height: 12),
+            _HomeCard(
+              title: 'Human Resources',
+              subtitle: 'Attendance check-in and check-out',
+              icon: Icons.badge_outlined,
+              cardColor: const Color(0xFFEFF6FF),
+              iconBg: const Color(0xFFBFDBFE),
+              onTap: () {
+                if (widget.onOpenHrTab != null) {
+                  widget.onOpenHrTab!.call();
+                  return;
+                }
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HrPage()),
+                );
+              },
+            ),
             const SizedBox(height: 20),
             const Text(
               'My Projects',
@@ -153,47 +174,44 @@ class _HomePageState extends State<HomePage> {
                 ),
               )
             else
-              ...previewProjects.asMap().entries.map(
-                (entry) {
-                  final index = entry.key;
-                  final project = entry.value;
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    child: ListTile(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ProjectDetailsPage(
-                              projectName: project.name,
-                            ),
-                          ),
-                        );
-                      },
-                      leading: CircleAvatar(
-                        backgroundColor: const Color(0xFF0E7490),
-                        child: Text(
-                          '${index + 1}',
-                          style: const TextStyle(color: Colors.white),
+              ...previewProjects.asMap().entries.map((entry) {
+                final index = entry.key;
+                final project = entry.value;
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  child: ListTile(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              ProjectDetailsPage(projectName: project.name),
                         ),
-                      ),
-                      title: Text(
-                        project.projectName.isNotEmpty
-                            ? project.projectName
-                            : project.name,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      subtitle: Text(
-                        '${project.status} • ${project.percentComplete.toStringAsFixed(0)}%',
-                        style: TextStyle(
-                          color: _progressColor(project.percentComplete),
-                          fontWeight: FontWeight.w600,
-                        ),
+                      );
+                    },
+                    leading: CircleAvatar(
+                      backgroundColor: const Color(0xFF0E7490),
+                      child: Text(
+                        '${index + 1}',
+                        style: const TextStyle(color: Colors.white),
                       ),
                     ),
-                  );
-                },
-              ),
+                    title: Text(
+                      project.projectName.isNotEmpty
+                          ? project.projectName
+                          : project.name,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      '${project.status} - ${project.percentComplete.toStringAsFixed(0)}%',
+                      style: TextStyle(
+                        color: _progressColor(project.percentComplete),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                );
+              }),
             if (projects.projects.length > 5)
               Padding(
                 padding: const EdgeInsets.only(top: 6),

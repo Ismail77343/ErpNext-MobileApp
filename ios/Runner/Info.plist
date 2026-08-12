@@ -27,9 +27,13 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>We use camera to attach images for the AI advisor.</string>
+	<string>We use camera to capture HR attendance face photos and attach images when needed.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>We use microphone for voice conversation with the AI advisor.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>We use Face ID to confirm HR attendance actions.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We use your location to record HR attendance check-in and check-out.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We use photos to attach images for the AI advisor.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>

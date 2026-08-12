@@ -7,6 +7,16 @@ import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/usecases/login_usecase.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/navigation/presentation/pages/main_shell_page.dart';
+import 'features/hr/data/datasources/attendance_remote_datasource.dart';
+import 'features/hr/data/repositories/attendance_repository_impl.dart';
+import 'features/hr/data/services/attendance_location_service.dart';
+import 'features/hr/data/services/attendance_photo_service.dart';
+import 'features/hr/data/services/attendance_security_service.dart';
+import 'features/hr/data/services/mobile_device_identity_service.dart';
+import 'features/hr/domain/usecases/create_employee_checkin_usecase.dart';
+import 'features/hr/domain/usecases/get_attendance_context_usecase.dart';
+import 'features/hr/domain/usecases/request_mobile_device_verification_usecase.dart';
+import 'features/hr/presentation/providers/attendance_provider.dart';
 
 // Projects
 import 'features/projects/presentation/providers/projects_provider.dart';
@@ -77,15 +87,21 @@ void main() {
   final uploadLeadAttachmentUseCase = UploadLeadAttachmentUseCase(leadsRepo);
 
   final opportunityRemoteDataSource = OpportunityRemoteDataSource();
-  final opportunitiesRepo = OpportunityRepositoryImpl(opportunityRemoteDataSource);
+  final opportunitiesRepo = OpportunityRepositoryImpl(
+    opportunityRemoteDataSource,
+  );
   final getOpportunitiesUseCase = GetOpportunitiesUseCase(opportunitiesRepo);
   final getOpportunitiesDashboardSummaryUseCase =
       GetOpportunitiesDashboardSummaryUseCase(opportunitiesRepo);
-  final getOpportunityDetailsUseCase =
-      GetOpportunityDetailsUseCase(opportunitiesRepo);
-  final getOpportunityFormUseCase = GetOpportunityFormUseCase(opportunitiesRepo);
-  final getOpportunityPartyPrefillUseCase =
-      GetOpportunityPartyPrefillUseCase(opportunitiesRepo);
+  final getOpportunityDetailsUseCase = GetOpportunityDetailsUseCase(
+    opportunitiesRepo,
+  );
+  final getOpportunityFormUseCase = GetOpportunityFormUseCase(
+    opportunitiesRepo,
+  );
+  final getOpportunityPartyPrefillUseCase = GetOpportunityPartyPrefillUseCase(
+    opportunitiesRepo,
+  );
   final getOpportunityRequiredFieldsUseCase =
       GetOpportunityRequiredFieldsUseCase(opportunitiesRepo);
   final createOpportunityUseCase = CreateOpportunityUseCase(opportunitiesRepo);
@@ -94,12 +110,14 @@ void main() {
       GetOpportunityWorkflowActionsUseCase(opportunitiesRepo);
   final executeOpportunityWorkflowActionUseCase =
       ExecuteOpportunityWorkflowActionUseCase(opportunitiesRepo);
-  final addOpportunityFollowUpUseCase =
-      AddOpportunityFollowUpUseCase(opportunitiesRepo);
+  final addOpportunityFollowUpUseCase = AddOpportunityFollowUpUseCase(
+    opportunitiesRepo,
+  );
   final searchOpportunityLinkOptionsUseCase =
       SearchOpportunityLinkOptionsUseCase(opportunitiesRepo);
-  final uploadOpportunityAttachmentUseCase =
-      UploadOpportunityAttachmentUseCase(opportunitiesRepo);
+  final uploadOpportunityAttachmentUseCase = UploadOpportunityAttachmentUseCase(
+    opportunitiesRepo,
+  );
   final workflowNotificationsRemoteDataSource =
       WorkflowNotificationsRemoteDataSource();
   final workflowNotificationsRepo = WorkflowNotificationsRepositoryImpl(
@@ -110,6 +128,16 @@ void main() {
   );
   final getWorkflowNotificationsSummaryUseCase =
       GetWorkflowNotificationsSummaryUseCase(workflowNotificationsRepo);
+  final attendanceRemoteDataSource = AttendanceRemoteDataSource();
+  final attendanceRepo = AttendanceRepositoryImpl(attendanceRemoteDataSource);
+  final getAttendanceContextUseCase = GetAttendanceContextUseCase(
+    attendanceRepo,
+  );
+  final createEmployeeCheckinUseCase = CreateEmployeeCheckinUseCase(
+    attendanceRepo,
+  );
+  final requestMobileDeviceVerificationUseCase =
+      RequestMobileDeviceVerificationUseCase(attendanceRepo);
 
   runApp(
     MultiProvider(
@@ -117,15 +145,15 @@ void main() {
         ChangeNotifierProvider(
           create: (_) => AuthProvider(loginUseCase)..restoreSession(),
         ),
-        ChangeNotifierProvider(create: (_) => ProjectsProvider(getProjectsUseCase)),
+        ChangeNotifierProvider(
+          create: (_) => ProjectsProvider(getProjectsUseCase),
+        ),
         ChangeNotifierProvider(
           create: (_) => ProjectDetailsProvider(getProjectDetailsUseCase),
         ),
         ChangeNotifierProvider(
-          create: (_) => LeadsProvider(
-            getLeadsUseCase,
-            getLeadsDashboardSummaryUseCase,
-          ),
+          create: (_) =>
+              LeadsProvider(getLeadsUseCase, getLeadsDashboardSummaryUseCase),
         ),
         ChangeNotifierProvider(
           create: (_) => LeadDetailsProvider(
@@ -173,6 +201,18 @@ void main() {
             getWorkflowNotificationsSummaryUseCase,
           ),
         ),
+        ChangeNotifierProvider(
+          create: (_) => AttendanceProvider(
+            getAttendanceContextUseCase: getAttendanceContextUseCase,
+            createEmployeeCheckinUseCase: createEmployeeCheckinUseCase,
+            requestMobileDeviceVerificationUseCase:
+                requestMobileDeviceVerificationUseCase,
+            securityService: AttendanceSecurityService(),
+            locationService: AttendanceLocationService(),
+            deviceIdentityService: MobileDeviceIdentityService(),
+            photoService: AttendancePhotoService(),
+          ),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -205,7 +245,9 @@ class MyApp extends StatelessWidget {
         cardTheme: CardThemeData(
           color: Colors.white,
           elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
       ),
       home: Consumer<AuthProvider>(
@@ -215,7 +257,9 @@ class MyApp extends StatelessWidget {
               body: Center(child: CircularProgressIndicator()),
             );
           }
-          return auth.isAuthenticated ? const MainShellPage() : const LoginPage();
+          return auth.isAuthenticated
+              ? const MainShellPage()
+              : const LoginPage();
         },
       ),
     );

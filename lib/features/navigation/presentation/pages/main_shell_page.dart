@@ -5,6 +5,7 @@ import '../../../../core/constants/app_links.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/pages/login_page.dart';
 import '../../../home/presentation/pages/home_page.dart';
+import '../../../hr/presentation/pages/hr_page.dart';
 import '../../../projects/presentation/pages/projects_page.dart';
 import '../../../purchases/presentation/pages/purchases_page.dart';
 import '../../../sales/presentation/pages/sales_page.dart';
@@ -56,7 +57,8 @@ class _MainShellPageState extends State<MainShellPage> {
 
   @override
   Widget build(BuildContext context) {
-    final workflowNotifications = context.watch<WorkflowNotificationsProvider>();
+    final workflowNotifications = context
+        .watch<WorkflowNotificationsProvider>();
     final pages = [
       HomePage(
         embedded: true,
@@ -140,6 +142,17 @@ class _MainShellPageState extends State<MainShellPage> {
                 onTap: () => _goTo(2),
               ),
               ListTile(
+                leading: const Icon(Icons.badge_outlined),
+                title: const Text("Human Resources"),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HrPage()),
+                  );
+                },
+              ),
+              ListTile(
                 leading: const Icon(Icons.shopping_bag_outlined),
                 title: const Text("Purchases"),
                 onTap: () => _goTo(3),
@@ -172,11 +185,8 @@ class _MainShellPageState extends State<MainShellPage> {
           ),
         ),
       ),
-      body: IndexedStack(
-        index: _index,
-        children: pages,
-      ),
-      extendBody: true,
+      body: IndexedStack(index: _index, children: pages),
+      extendBody: false,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _index,
         type: BottomNavigationBarType.fixed,
