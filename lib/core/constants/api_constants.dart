@@ -1,5 +1,5 @@
 class ApiConstants {
-  static const String baseUrl = "https://erp.tecpalace.com.sa";
+  static const String baseUrl = "http://192.168.100.107:8000";
   static const String localDevelopmentBaseUrl = "http://192.168.100.107:8000";
 
   static const String loginEndpoint = "/api/method/mobile_api.api.login";
@@ -77,6 +77,34 @@ class ApiConstants {
       "/api/method/mobile_api.api.get_workflow_notifications";
   static const String workflowNotificationsSummaryEndpoint =
       "/api/method/mobile_api.api.get_workflow_notifications_summary";
+  static const String createMobileTaskFollowUpEndpoint =
+      "/api/method/mobile_api.api.create_mobile_task_follow_up";
+  static const String myMobileTaskFollowUpsEndpoint =
+      "/api/method/mobile_api.api.get_my_mobile_task_follow_ups";
+  static const String assignedMobileTaskFollowUpsEndpoint =
+      "/api/method/mobile_api.api.get_assigned_mobile_task_follow_ups";
+  static const String mobileTaskFollowUpDetailsEndpoint =
+      "/api/method/mobile_api.api.get_mobile_task_follow_up_details";
+  static const String addMobileTaskFollowUpUpdateEndpoint =
+      "/api/method/mobile_api.api.add_mobile_task_follow_up_update";
+  static const String closeMobileTaskFollowUpEndpoint =
+      "/api/method/mobile_api.api.close_mobile_task_follow_up";
+  static const String mobileTaskFollowUpNotificationsEndpoint =
+      "/api/method/mobile_api.api.get_mobile_task_follow_up_notifications";
+  static const String markMobileTaskFollowUpReadEndpoint =
+      "/api/method/mobile_api.api.mark_mobile_task_follow_up_read";
+  static const String materialTransferHandoversEndpoint =
+      "/api/method/mobile_api.api.get_my_material_transfer_handovers";
+  static const String materialTransferHandoverDetailsEndpoint =
+      "/api/method/mobile_api.api.get_material_transfer_handover_details";
+  static const String confirmMaterialTransferPickupEndpoint =
+      "/api/method/mobile_api.api.confirm_material_transfer_pickup";
+  static const String confirmMaterialTransferDeliveryEndpoint =
+      "/api/method/mobile_api.api.confirm_material_transfer_delivery";
+  static const String materialTransferReturnOptionsEndpoint =
+      "/api/method/mobile_api.api.get_material_transfer_return_options";
+  static const String createMaterialTransferReturnEndpoint =
+      "/api/method/mobile_api.api.create_material_transfer_return";
   static const String hrAttendanceContextEndpoint =
       "/api/method/mobile_api.api.get_hr_attendance_context";
   static const String mobileDeviceVerificationStatusEndpoint =

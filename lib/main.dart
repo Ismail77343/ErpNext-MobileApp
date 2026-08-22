@@ -64,6 +64,32 @@ import 'features/workflow_notifications/data/repositories/workflow_notifications
 import 'features/workflow_notifications/domain/usecases/get_workflow_notifications_summary_usecase.dart';
 import 'features/workflow_notifications/domain/usecases/get_workflow_notifications_usecase.dart';
 import 'features/workflow_notifications/presentation/providers/workflow_notifications_provider.dart';
+import 'features/task_follow_up/data/datasources/task_follow_up_remote_datasource.dart';
+import 'features/task_follow_up/data/repositories/task_follow_up_repository_impl.dart';
+import 'features/task_follow_up/domain/usecases/add_task_follow_up_update_usecase.dart';
+import 'features/task_follow_up/domain/usecases/close_task_follow_up_usecase.dart';
+import 'features/task_follow_up/domain/usecases/create_task_follow_up_usecase.dart';
+import 'features/task_follow_up/domain/usecases/get_assigned_task_follow_ups_usecase.dart';
+import 'features/task_follow_up/domain/usecases/get_my_task_follow_ups_usecase.dart';
+import 'features/task_follow_up/domain/usecases/get_task_follow_up_details_usecase.dart';
+import 'features/task_follow_up/domain/usecases/get_task_follow_up_notifications_usecase.dart';
+import 'features/task_follow_up/domain/usecases/mark_task_follow_up_read_usecase.dart';
+import 'features/task_follow_up/domain/usecases/search_task_follow_up_link_options_usecase.dart';
+import 'features/task_follow_up/domain/usecases/upload_task_follow_up_attachment_usecase.dart';
+import 'features/task_follow_up/presentation/providers/task_follow_up_details_provider.dart';
+import 'features/task_follow_up/presentation/providers/task_follow_up_form_provider.dart';
+import 'features/task_follow_up/presentation/providers/task_follow_up_notifications_provider.dart';
+import 'features/task_follow_up/presentation/providers/task_follow_ups_provider.dart';
+import 'features/stores/data/datasources/material_handover_remote_datasource.dart';
+import 'features/stores/data/repositories/material_handover_repository_impl.dart';
+import 'features/stores/data/services/material_handover_photo_service.dart';
+import 'features/stores/domain/usecases/confirm_material_delivery_usecase.dart';
+import 'features/stores/domain/usecases/confirm_material_pickup_usecase.dart';
+import 'features/stores/domain/usecases/create_material_return_usecase.dart';
+import 'features/stores/domain/usecases/get_material_handover_details_usecase.dart';
+import 'features/stores/domain/usecases/get_material_handovers_usecase.dart';
+import 'features/stores/domain/usecases/get_material_return_options_usecase.dart';
+import 'features/stores/presentation/providers/material_handovers_provider.dart';
 
 void main() {
   final authRepo = AuthRepositoryImpl();
@@ -140,6 +166,53 @@ void main() {
   );
   final requestMobileDeviceVerificationUseCase =
       RequestMobileDeviceVerificationUseCase(attendanceRepo);
+  final taskFollowUpRemoteDataSource = TaskFollowUpRemoteDataSource();
+  final taskFollowUpRepo = TaskFollowUpRepositoryImpl(
+    taskFollowUpRemoteDataSource,
+  );
+  final getMyTaskFollowUpsUseCase = GetMyTaskFollowUpsUseCase(taskFollowUpRepo);
+  final getAssignedTaskFollowUpsUseCase = GetAssignedTaskFollowUpsUseCase(
+    taskFollowUpRepo,
+  );
+  final getTaskFollowUpDetailsUseCase = GetTaskFollowUpDetailsUseCase(
+    taskFollowUpRepo,
+  );
+  final createTaskFollowUpUseCase = CreateTaskFollowUpUseCase(taskFollowUpRepo);
+  final addTaskFollowUpUpdateUseCase = AddTaskFollowUpUpdateUseCase(
+    taskFollowUpRepo,
+  );
+  final closeTaskFollowUpUseCase = CloseTaskFollowUpUseCase(taskFollowUpRepo);
+  final getTaskFollowUpNotificationsUseCase =
+      GetTaskFollowUpNotificationsUseCase(taskFollowUpRepo);
+  final markTaskFollowUpReadUseCase = MarkTaskFollowUpReadUseCase(
+    taskFollowUpRepo,
+  );
+  final searchTaskFollowUpLinkOptionsUseCase =
+      SearchTaskFollowUpLinkOptionsUseCase(taskFollowUpRepo);
+  final uploadTaskFollowUpAttachmentUseCase =
+      UploadTaskFollowUpAttachmentUseCase(taskFollowUpRepo);
+  final materialHandoverRemoteDataSource = MaterialHandoverRemoteDataSource();
+  final materialHandoverRepo = MaterialHandoverRepositoryImpl(
+    materialHandoverRemoteDataSource,
+  );
+  final getMaterialHandoversUseCase = GetMaterialHandoversUseCase(
+    materialHandoverRepo,
+  );
+  final getMaterialHandoverDetailsUseCase = GetMaterialHandoverDetailsUseCase(
+    materialHandoverRepo,
+  );
+  final confirmMaterialPickupUseCase = ConfirmMaterialPickupUseCase(
+    materialHandoverRepo,
+  );
+  final confirmMaterialDeliveryUseCase = ConfirmMaterialDeliveryUseCase(
+    materialHandoverRepo,
+  );
+  final getMaterialReturnOptionsUseCase = GetMaterialReturnOptionsUseCase(
+    materialHandoverRepo,
+  );
+  final createMaterialReturnUseCase = CreateMaterialReturnUseCase(
+    materialHandoverRepo,
+  );
 
   runApp(
     MultiProvider(
@@ -213,6 +286,43 @@ void main() {
             locationService: AttendanceLocationService(),
             deviceIdentityService: MobileDeviceIdentityService(),
             photoService: AttendancePhotoService(),
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => TaskFollowUpsProvider(
+            getMyTaskFollowUpsUseCase,
+            getAssignedTaskFollowUpsUseCase,
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => TaskFollowUpDetailsProvider(
+            getTaskFollowUpDetailsUseCase,
+            addTaskFollowUpUpdateUseCase,
+            closeTaskFollowUpUseCase,
+            markTaskFollowUpReadUseCase,
+            uploadTaskFollowUpAttachmentUseCase,
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => TaskFollowUpFormProvider(
+            createTaskFollowUpUseCase,
+            searchTaskFollowUpLinkOptionsUseCase,
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => TaskFollowUpNotificationsProvider(
+            getTaskFollowUpNotificationsUseCase,
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => MaterialHandoversProvider(
+            getHandoversUseCase: getMaterialHandoversUseCase,
+            getDetailsUseCase: getMaterialHandoverDetailsUseCase,
+            confirmPickupUseCase: confirmMaterialPickupUseCase,
+            confirmDeliveryUseCase: confirmMaterialDeliveryUseCase,
+            getReturnOptionsUseCase: getMaterialReturnOptionsUseCase,
+            createReturnUseCase: createMaterialReturnUseCase,
+            photoService: MaterialHandoverPhotoService(),
           ),
         ),
       ],

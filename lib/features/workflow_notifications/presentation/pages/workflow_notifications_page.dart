@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/api_constants.dart';
+import '../../../task_follow_up/domain/entities/task_follow_up_notification.dart';
+import '../../../task_follow_up/presentation/pages/task_follow_up_details_page.dart';
+import '../../../task_follow_up/presentation/providers/task_follow_up_notifications_provider.dart';
 import '../../domain/entities/workflow_notification.dart';
 import '../providers/workflow_notifications_provider.dart';
 
@@ -31,6 +34,7 @@ class _WorkflowNotificationsPageState extends State<WorkflowNotificationsPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<WorkflowNotificationsProvider>().initialize();
+      context.read<TaskFollowUpNotificationsProvider>().refresh();
     });
   }
 
@@ -43,6 +47,7 @@ class _WorkflowNotificationsPageState extends State<WorkflowNotificationsPage> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<WorkflowNotificationsProvider>();
+    final taskProvider = context.watch<TaskFollowUpNotificationsProvider>();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Workflow Notifications')),
@@ -51,61 +56,65 @@ class _WorkflowNotificationsPageState extends State<WorkflowNotificationsPage> {
         child: provider.isLoading
             ? const Center(child: CircularProgressIndicator())
             : provider.error != null
-                ? ListView(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 80),
-                            const Icon(
-                              Icons.notifications_off_rounded,
-                              size: 48,
-                              color: Color(0xFFDC2626),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              provider.error!,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(color: Color(0xFFB91C1C)),
-                            ),
-                            const SizedBox(height: 12),
-                            OutlinedButton.icon(
-                              onPressed: provider.refresh,
-                              icon: const Icon(Icons.refresh_rounded),
-                              label: const Text('Retry'),
-                            ),
-                          ],
+            ? ListView(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 80),
+                        const Icon(
+                          Icons.notifications_off_rounded,
+                          size: 48,
+                          color: Color(0xFFDC2626),
                         ),
-                      ),
-                    ],
-                  )
-                : ListView(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      _NotificationsSummaryCard(provider: provider),
-                      const SizedBox(height: 16),
-                      if (provider.notifications.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.only(top: 80),
-                          child: Center(
-                            child: Text('No workflow notifications found'),
-                          ),
-                        )
-                      else
-                        ...provider.notifications.map(
-                          (item) => _WorkflowNotificationCard(
-                            notification: item,
-                          ),
+                        const SizedBox(height: 12),
+                        Text(
+                          provider.error!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Color(0xFFB91C1C)),
                         ),
-                      if (provider.isLoadingMore)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Center(child: CircularProgressIndicator()),
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          onPressed: provider.refresh,
+                          icon: const Icon(Icons.refresh_rounded),
+                          label: const Text('Retry'),
                         ),
-                    ],
+                      ],
+                    ),
                   ),
+                ],
+              )
+            : ListView(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(16),
+                children: [
+                  _NotificationsSummaryCard(provider: provider),
+                  if (taskProvider.notifications.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    _TaskNotificationsSection(
+                      notifications: taskProvider.notifications,
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  if (provider.notifications.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 80),
+                      child: Center(
+                        child: Text('No workflow notifications found'),
+                      ),
+                    )
+                  else
+                    ...provider.notifications.map(
+                      (item) => _WorkflowNotificationCard(notification: item),
+                    ),
+                  if (provider.isLoadingMore)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                ],
+              ),
       ),
     );
   }
@@ -155,11 +164,71 @@ class _NotificationsSummaryCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(item.$1, style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(
+                  item.$1,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _TaskNotificationsSection extends StatelessWidget {
+  const _TaskNotificationsSection({required this.notifications});
+
+  final List<TaskFollowUpNotification> notifications;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Task Follow Ups',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                  ),
+                ),
+                Chip(label: Text('${notifications.length} unread')),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ...notifications.map(
+              (item) => ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const CircleAvatar(
+                  child: Icon(Icons.task_alt_rounded),
+                ),
+                title: Text(item.subject.isEmpty ? item.id : item.subject),
+                subtitle: Text('${item.status} • ${item.progress}%'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => TaskFollowUpDetailsPage(
+                        taskName: item.id,
+                        assignedToMe: true,
+                      ),
+                    ),
+                  );
+                  if (context.mounted) {
+                    context.read<TaskFollowUpNotificationsProvider>().refresh();
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

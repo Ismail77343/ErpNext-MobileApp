@@ -8,6 +8,7 @@ import '../../../projects/presentation/pages/project_details_page.dart';
 import '../../../projects/presentation/pages/projects_page.dart';
 import '../../../projects/presentation/providers/projects_provider.dart';
 import '../../../sales/presentation/pages/sales_page.dart';
+import '../../../stores/presentation/pages/stores_page.dart';
 
 class HomePage extends StatefulWidget {
   final bool? embedded;
@@ -171,6 +172,20 @@ class _HomePageState extends State<HomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const HrPage()),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            _HomeCard(
+              title: 'Stores',
+              subtitle: 'Material handover pickup, delivery, and returns',
+              icon: Icons.warehouse_outlined,
+              cardColor: const Color(0xFFFFF7ED),
+              iconBg: const Color(0xFFFED7AA),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const StoresPage()),
                 );
               },
             ),

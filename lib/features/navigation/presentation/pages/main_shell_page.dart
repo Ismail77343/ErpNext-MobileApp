@@ -10,9 +10,12 @@ import '../../../hr/presentation/pages/hr_page.dart';
 import '../../../projects/presentation/pages/projects_page.dart';
 import '../../../purchases/presentation/pages/purchases_page.dart';
 import '../../../sales/presentation/pages/sales_page.dart';
+import '../../../stores/presentation/pages/stores_page.dart';
 import '../../../ai_advisor/presentation/pages/ai_advisor_page.dart';
 import '../../../workflow_notifications/presentation/pages/workflow_notifications_page.dart';
 import '../../../workflow_notifications/presentation/providers/workflow_notifications_provider.dart';
+import '../../../task_follow_up/presentation/pages/task_follow_ups_page.dart';
+import '../../../task_follow_up/presentation/providers/task_follow_up_notifications_provider.dart';
 
 class MainShellPage extends StatefulWidget {
   const MainShellPage({super.key});
@@ -30,12 +33,14 @@ class _MainShellPageState extends State<MainShellPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<WorkflowNotificationsProvider>().initialize();
+      context.read<TaskFollowUpNotificationsProvider>().refresh();
     });
   }
 
   static const _titles = [
     "Home",
     "Projects",
+    "Tasks",
     "Sales",
     "Purchases",
     "Smart Advisor",
@@ -64,13 +69,18 @@ class _MainShellPageState extends State<MainShellPage> {
       HomePage(
         embedded: true,
         onOpenProjectsTab: () => _goTo(1),
-        onOpenSalesTab: () => _goTo(2),
+        onOpenSalesTab: () => _goTo(3),
       ),
       const ProjectsPage(embedded: true),
+      const TaskFollowUpsPage(embedded: true),
       const SalesPage(embedded: true),
       const PurchasesPage(embedded: true),
       const AiAdvisorPage(embedded: true),
     ];
+    final taskNotifications = context
+        .watch<TaskFollowUpNotificationsProvider>();
+    final totalUnread =
+        workflowNotifications.unreadCount + taskNotifications.unreadCount;
 
     return Scaffold(
       appBar: AppBar(
@@ -89,7 +99,7 @@ class _MainShellPageState extends State<MainShellPage> {
               clipBehavior: Clip.none,
               children: [
                 const Icon(Icons.notifications_none_rounded),
-                if (workflowNotifications.unreadCount > 0)
+                if (totalUnread > 0)
                   Positioned(
                     right: -6,
                     top: -6,
@@ -103,7 +113,7 @@ class _MainShellPageState extends State<MainShellPage> {
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
-                        '${workflowNotifications.unreadCount}',
+                        '$totalUnread',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 11,
@@ -138,9 +148,14 @@ class _MainShellPageState extends State<MainShellPage> {
                 onTap: () => _goTo(1),
               ),
               ListTile(
+                leading: const Icon(Icons.task_alt_rounded),
+                title: const Text("Task Follow Ups"),
+                onTap: () => _goTo(2),
+              ),
+              ListTile(
                 leading: const Icon(Icons.storefront_outlined),
                 title: const Text("Sales"),
-                onTap: () => _goTo(2),
+                onTap: () => _goTo(3),
               ),
               ListTile(
                 leading: const Icon(Icons.badge_outlined),
@@ -154,14 +169,25 @@ class _MainShellPageState extends State<MainShellPage> {
                 },
               ),
               ListTile(
+                leading: const Icon(Icons.warehouse_outlined),
+                title: const Text("Stores"),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const StoresPage()),
+                  );
+                },
+              ),
+              ListTile(
                 leading: const Icon(Icons.shopping_bag_outlined),
                 title: const Text("Purchases"),
-                onTap: () => _goTo(3),
+                onTap: () => _goTo(4),
               ),
               ListTile(
                 leading: const Icon(Icons.smart_toy_outlined),
                 title: const Text("Smart Advisor"),
-                onTap: () => _goTo(4),
+                onTap: () => _goTo(5),
               ),
               const Divider(),
               ListTile(
@@ -201,6 +227,7 @@ class _MainShellPageState extends State<MainShellPage> {
             icon: Icon(Icons.work_outline_rounded),
             label: "Projects",
           ),
+          BottomNavigationBarItem(icon: _TaskNavIcon(), label: "Tasks"),
           BottomNavigationBarItem(
             icon: Icon(Icons.storefront_outlined),
             label: "Sales",
@@ -215,6 +242,43 @@ class _MainShellPageState extends State<MainShellPage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _TaskNavIcon extends StatelessWidget {
+  const _TaskNavIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    final unread = context
+        .watch<TaskFollowUpNotificationsProvider>()
+        .unreadCount;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        const Icon(Icons.task_alt_rounded),
+        if (unread > 0)
+          Positioned(
+            right: -8,
+            top: -8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                '$unread',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
