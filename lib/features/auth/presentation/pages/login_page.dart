@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:erp_mobile_app/core/constants/app_branding.dart';
 import 'package:erp_mobile_app/core/utils/app_logger.dart';
 import '../../../navigation/presentation/pages/main_shell_page.dart';
 import '../providers/auth_provider.dart';
@@ -79,21 +80,38 @@ class _LoginPageState extends State<LoginPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          width: 76,
-                          height: 76,
+                          width: double.infinity,
+                          constraints: const BoxConstraints(maxWidth: 240),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE6F4FA),
-                            borderRadius: BorderRadius.circular(18),
+                            color: AppBranding.ice,
+                            borderRadius: BorderRadius.circular(22),
                           ),
-                          padding: const EdgeInsets.all(12),
-                          child: Image.asset('assets/icons/erpnext.png'),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 16,
+                          ),
+                          child: Image.asset(
+                            AppBranding.fullLogoPath,
+                            height: 72,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Text(
+                                AppBranding.appName,
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: AppBranding.navy,
+                                ),
+                              );
+                            },
+                          ),
                         ),
                         const SizedBox(height: 14),
                         Text(
-                          "ERPNext",
+                          AppBranding.appName,
                           style: theme.textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF0E7490),
+                            color: AppBranding.navy,
                           ),
                         ),
                         const SizedBox(height: 4),

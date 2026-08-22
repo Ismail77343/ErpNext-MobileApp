@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/constants/app_branding.dart';
 import '../../../../core/constants/app_links.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/pages/login_page.dart';
@@ -122,7 +123,7 @@ class _MainShellPageState extends State<MainShellPage> {
             children: [
               const ListTile(
                 title: Text(
-                  "ERP Menu",
+                  "${AppBranding.appName} Menu",
                   style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
                 ),
               ),

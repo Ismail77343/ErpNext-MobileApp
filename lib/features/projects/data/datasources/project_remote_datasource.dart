@@ -31,10 +31,6 @@ class ProjectRemoteDataSource {
     }
 
     final decoded = jsonDecode(response.body);
-    AppLogger.project(
-      'project remote datasource: body sample ${response.body.substring(0, response.body.length > 250 ? 250 : response.body.length)}',
-    );
-
     final rawList = _extractProjectsList(decoded);
     if (rawList == null) {
       AppLogger.project('project remote datasource: no list found in response');
@@ -46,7 +42,9 @@ class ProjectRemoteDataSource {
         .map(ProjectModel.fromJson)
         .toList();
 
-    AppLogger.project('project remote datasource: parsed ${projects.length}');
+    AppLogger.project(
+      'project remote datasource: parsed ${projects.length} first=${projects.isEmpty ? 'none' : projects.first.name}',
+    );
     return projects;
   }
 
@@ -238,6 +236,8 @@ class ProjectRemoteDataSource {
       decoded['data'],
       decoded['message'],
       decoded['projects'],
+      decoded['items'],
+      decoded['results'],
       decoded['result'],
     ];
 
@@ -247,17 +247,41 @@ class ProjectRemoteDataSource {
 
     final data = decoded['data'];
     if (data is Map<String, dynamic>) {
-      final nestedCandidates = [
-        data['projects'],
-        data['items'],
-        data['results'],
-        data['message'],
-      ];
-      for (final value in nestedCandidates) {
-        if (value is List) return value;
-      }
+      final found = _extractNestedProjectList(data);
+      if (found != null) return found;
     }
 
+    final message = decoded['message'];
+    if (message is Map<String, dynamic>) {
+      final found = _extractNestedProjectList(message);
+      if (found != null) return found;
+    }
+
+    final result = decoded['result'];
+    if (result is Map<String, dynamic>) {
+      final found = _extractNestedProjectList(result);
+      if (found != null) return found;
+    }
+
+    return null;
+  }
+
+  List<dynamic>? _extractNestedProjectList(Map<String, dynamic> map) {
+    final nestedCandidates = [
+      map['data'],
+      map['projects'],
+      map['items'],
+      map['results'],
+      map['message'],
+      map['result'],
+    ];
+    for (final value in nestedCandidates) {
+      if (value is List) return value;
+      if (value is Map<String, dynamic>) {
+        final nested = _extractNestedProjectList(value);
+        if (nested != null) return nested;
+      }
+    }
     return null;
   }
 

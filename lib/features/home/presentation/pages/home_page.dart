@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../../core/constants/app_branding.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../hr/presentation/pages/hr_page.dart';
@@ -61,16 +62,35 @@ class _HomePageState extends State<HomePage> {
           padding: const EdgeInsets.all(16),
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(24),
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF0E7490), Color(0xFF14B8A6)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppBranding.navy,
+                    AppBranding.electricBlue,
+                    AppBranding.cyan,
+                  ],
                 ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.92),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Image.asset(
+                      AppBranding.fullLogoPath,
+                      height: 54,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
                   const Text(
                     'Welcome Back',
                     style: TextStyle(
@@ -86,6 +106,15 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    AppBranding.appFullName,
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
@@ -237,7 +266,7 @@ class _HomePageState extends State<HomePage> {
     if ((widget.embedded ?? false)) return content;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('ERP Dashboard')),
+      appBar: AppBar(title: const Text(AppBranding.appName)),
       body: content,
     );
   }

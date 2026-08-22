@@ -16,18 +16,31 @@ class ProjectsProvider extends ChangeNotifier {
   List<Project> _projects = [];
   String? _error;
   String _searchQuery = '';
+  String _statusFilter = 'All';
 
   bool get isLoading => _isLoading;
   bool get isLoadingMore => _isLoadingMore;
   String? get error => _error;
   String get searchQuery => _searchQuery;
+  String get statusFilter => _statusFilter;
   bool get hasMore => _hasMoreFromServer;
-  bool get canLoadMore => _searchQuery.isEmpty && _hasMoreFromServer;
+  bool get hasActiveSearch => _searchQuery.isNotEmpty;
+  bool get hasActiveStatusFilter => _statusFilter != 'All';
+  bool get hasAnyFilter => hasActiveSearch || hasActiveStatusFilter;
+  bool get canLoadMore => !hasAnyFilter && _hasMoreFromServer;
+  int get rawProjectsCount => _projects.length;
 
   List<Project> get projects {
-    if (_searchQuery.isEmpty) return _projects;
+    final filteredByStatus = _statusFilter == 'All'
+        ? _projects
+        : _projects.where(
+            (project) =>
+                project.status.trim().toLowerCase() ==
+                _statusFilter.trim().toLowerCase(),
+          );
+    if (_searchQuery.isEmpty) return filteredByStatus.toList();
     final q = _searchQuery.toLowerCase();
-    return _projects.where((project) {
+    return filteredByStatus.where((project) {
       return project.name.toLowerCase().contains(q) ||
           project.projectName.toLowerCase().contains(q) ||
           project.customer.toLowerCase().contains(q) ||
@@ -55,7 +68,7 @@ class ProjectsProvider extends ChangeNotifier {
       _hasMoreFromServer = batch.length == limit;
 
       AppLogger.project(
-        '==== fetched project==== batch=${batch.length} total=${_projects.length} nextStart=$_nextStart hasMore=$_hasMoreFromServer',
+        'projects fetched batch=${batch.length} total=${_projects.length} first=${_projects.isEmpty ? 'none' : _projects.first.name} nextStart=$_nextStart hasMore=$_hasMoreFromServer',
       );
     } catch (e) {
       _projects = [];
@@ -69,7 +82,7 @@ class ProjectsProvider extends ChangeNotifier {
 
   Future<void> loadMoreProjects() async {
     if (_isLoading || _isLoadingMore || !_hasMoreFromServer) return;
-    if (_searchQuery.isNotEmpty) return;
+    if (hasAnyFilter) return;
 
     _isLoadingMore = true;
     _error = null;
@@ -90,7 +103,7 @@ class ProjectsProvider extends ChangeNotifier {
       _hasMoreFromServer = batch.length == _serverPageSize;
 
       AppLogger.project(
-        'project load more done batch=${batch.length} added=${newItems.length} total=${_projects.length} nextStart=$_nextStart hasMore=$_hasMoreFromServer',
+        'project load more done batch=${batch.length} added=${newItems.length} total=${_projects.length} first=${_projects.isEmpty ? 'none' : _projects.first.name} nextStart=$_nextStart hasMore=$_hasMoreFromServer',
       );
     } catch (e) {
       _error = e.toString();
@@ -104,6 +117,12 @@ class ProjectsProvider extends ChangeNotifier {
   void setSearchQuery(String query) {
     _searchQuery = query.trim();
     AppLogger.project('project search query: "$_searchQuery"');
+    notifyListeners();
+  }
+
+  void setStatusFilter(String status) {
+    _statusFilter = status;
+    AppLogger.project('project status filter: "$_statusFilter"');
     notifyListeners();
   }
 }

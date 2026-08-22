@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'core/constants/app_branding.dart';
+
 // Auth
 import 'features/auth/presentation/providers/auth_provider.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
@@ -225,12 +227,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF0E7490),
+      seedColor: AppBranding.electricBlue,
       brightness: Brightness.light,
     );
 
     return MaterialApp(
-      title: 'ERP Mobile App',
+      title: AppBranding.appName,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -238,7 +240,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFFF4F8FB),
         appBarTheme: AppBarTheme(
           centerTitle: false,
-          backgroundColor: colorScheme.primary,
+          backgroundColor: AppBranding.navy,
           foregroundColor: Colors.white,
           elevation: 0,
         ),

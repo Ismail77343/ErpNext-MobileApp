@@ -1,5 +1,5 @@
 class ApiConstants {
-  static const String baseUrl = "http://192.168.100.107:8000";
+  static const String baseUrl = "https://erp.tecpalace.com.sa";
   static const String localDevelopmentBaseUrl = "http://192.168.100.107:8000";
 
   static const String loginEndpoint = "/api/method/mobile_api.api.login";
