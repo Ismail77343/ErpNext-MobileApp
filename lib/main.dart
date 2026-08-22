@@ -82,6 +82,7 @@ import 'features/task_follow_up/presentation/providers/task_follow_up_notificati
 import 'features/task_follow_up/presentation/providers/task_follow_ups_provider.dart';
 import 'features/stores/data/datasources/material_handover_remote_datasource.dart';
 import 'features/stores/data/repositories/material_handover_repository_impl.dart';
+import 'features/stores/data/services/material_handover_location_service.dart';
 import 'features/stores/data/services/material_handover_photo_service.dart';
 import 'features/stores/domain/usecases/confirm_material_delivery_usecase.dart';
 import 'features/stores/domain/usecases/confirm_material_pickup_usecase.dart';
@@ -323,6 +324,7 @@ void main() {
             getReturnOptionsUseCase: getMaterialReturnOptionsUseCase,
             createReturnUseCase: createMaterialReturnUseCase,
             photoService: MaterialHandoverPhotoService(),
+            locationService: MaterialHandoverLocationService(),
           ),
         ),
       ],

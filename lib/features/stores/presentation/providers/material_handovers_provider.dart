@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/utils/app_logger.dart';
+import '../../data/services/material_handover_location_service.dart';
 import '../../data/services/material_handover_photo_service.dart';
+import '../../domain/entities/material_handover_location.dart';
 import '../../domain/entities/material_handover.dart';
 import '../../domain/entities/material_handover_details.dart';
 import '../../domain/entities/material_handover_item.dart';
@@ -22,13 +24,15 @@ class MaterialHandoversProvider extends ChangeNotifier {
     required GetMaterialReturnOptionsUseCase getReturnOptionsUseCase,
     required CreateMaterialReturnUseCase createReturnUseCase,
     required MaterialHandoverPhotoService photoService,
+    required MaterialHandoverLocationService locationService,
   }) : _getHandoversUseCase = getHandoversUseCase,
        _getDetailsUseCase = getDetailsUseCase,
        _confirmPickupUseCase = confirmPickupUseCase,
        _confirmDeliveryUseCase = confirmDeliveryUseCase,
        _getReturnOptionsUseCase = getReturnOptionsUseCase,
        _createReturnUseCase = createReturnUseCase,
-       _photoService = photoService;
+       _photoService = photoService,
+       _locationService = locationService;
 
   final GetMaterialHandoversUseCase _getHandoversUseCase;
   final GetMaterialHandoverDetailsUseCase _getDetailsUseCase;
@@ -37,6 +41,7 @@ class MaterialHandoversProvider extends ChangeNotifier {
   final GetMaterialReturnOptionsUseCase _getReturnOptionsUseCase;
   final CreateMaterialReturnUseCase _createReturnUseCase;
   final MaterialHandoverPhotoService _photoService;
+  final MaterialHandoverLocationService _locationService;
 
   static const int _pageSize = 20;
 
@@ -130,6 +135,7 @@ class MaterialHandoversProvider extends ChangeNotifier {
         name: _details!.name,
         photoBase64: photo.base64,
         photoFilename: photo.filename,
+        location: photo.location,
         notes: notes,
       ),
     );
@@ -142,6 +148,7 @@ class MaterialHandoversProvider extends ChangeNotifier {
         name: _details!.name,
         photoBase64: photo.base64,
         photoFilename: photo.filename,
+        location: photo.location,
         notes: notes,
       ),
     );
@@ -149,7 +156,7 @@ class MaterialHandoversProvider extends ChangeNotifier {
 
   Future<bool> _confirmAction({
     required String action,
-    required Future<void> Function(dynamic photo) runner,
+    required Future<void> Function(_MaterialHandoverEvidence evidence) runner,
   }) async {
     if (_details == null) return false;
     _isProcessing = true;
@@ -157,7 +164,14 @@ class MaterialHandoversProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final photo = await _photoService.captureEvidence(action: action);
-      await runner(photo);
+      final location = await _locationService.getCurrentLocation();
+      await runner(
+        _MaterialHandoverEvidence(
+          base64: photo.base64,
+          filename: photo.filename,
+          location: location,
+        ),
+      );
       await loadDetails(_details!.name);
       await refresh();
       return true;
@@ -203,11 +217,13 @@ class MaterialHandoversProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final photo = await _photoService.captureEvidence(action: 'return');
+      final location = await _locationService.getCurrentLocation();
       _lastReturnDraft = await _createReturnUseCase.call(
         name: current.name,
         items: items,
         photoBase64: photo.base64,
         photoFilename: photo.filename,
+        location: location,
         notes: notes,
       );
       await loadDetails(current.name);
@@ -222,4 +238,16 @@ class MaterialHandoversProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+}
+
+class _MaterialHandoverEvidence {
+  const _MaterialHandoverEvidence({
+    required this.base64,
+    required this.filename,
+    required this.location,
+  });
+
+  final String base64;
+  final String filename;
+  final MaterialHandoverLocation location;
 }

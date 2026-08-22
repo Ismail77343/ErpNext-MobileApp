@@ -1,3 +1,4 @@
+import '../entities/material_handover_location.dart';
 import '../entities/material_return_line.dart';
 import '../repositories/material_handover_repository.dart';
 
@@ -11,6 +12,7 @@ class CreateMaterialReturnUseCase {
     required List<MaterialReturnLine> items,
     required String photoBase64,
     required String photoFilename,
+    required MaterialHandoverLocation location,
     required String notes,
   }) {
     return _repository.createReturn(
@@ -18,6 +20,7 @@ class CreateMaterialReturnUseCase {
       items: items,
       photoBase64: photoBase64,
       photoFilename: photoFilename,
+      location: location,
       notes: notes,
     );
   }

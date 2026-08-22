@@ -5,6 +5,11 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../core/constants/api_constants.dart';
+import '../../../opportunity/data/datasources/opportunity_remote_datasource.dart';
+import '../../../opportunity/domain/entities/opportunity.dart';
+import '../../../opportunity/presentation/pages/opportunity_details_page.dart';
+import '../../../opportunity/presentation/pages/opportunity_form_page.dart';
+import '../../../opportunity/presentation/widgets/opportunity_scope.dart';
 import '../../domain/entities/lead_activity.dart';
 import '../../domain/entities/lead_follow_up.dart';
 import '../providers/lead_details_provider.dart';
@@ -20,48 +25,103 @@ class LeadDetailsPage extends StatefulWidget {
 }
 
 class _LeadDetailsPageState extends State<LeadDetailsPage> {
+  late Future<List<Opportunity>> _leadOpportunitiesFuture;
+
   @override
   void initState() {
     super.initState();
+    _leadOpportunitiesFuture = _loadLeadOpportunities();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<LeadDetailsProvider>().load(widget.leadName);
     });
   }
 
+  Future<List<Opportunity>> _loadLeadOpportunities() async {
+    final items = await OpportunityRemoteDataSource().getOpportunities(
+      start: 0,
+      limit: 50,
+      search: widget.leadName,
+    );
+    return items.where((item) => item.partyName == widget.leadName).toList();
+  }
+
+  void _refreshLeadOpportunities() {
+    setState(() {
+      _leadOpportunitiesFuture = _loadLeadOpportunities();
+    });
+  }
+
   Future<void> _openEditForm() async {
     final provider = context.read<LeadDetailsProvider>();
+    final navigator = Navigator.of(context);
     final details = provider.details;
     if (details == null) return;
 
-    final changed = await Navigator.push<bool>(
-      context,
+    final changed = await navigator.push<bool>(
       MaterialPageRoute(
-        builder: (_) => LeadFormPage(
-          leadName: widget.leadName,
-          initialData: details.data,
-        ),
+        builder: (_) =>
+            LeadFormPage(leadName: widget.leadName, initialData: details.data),
       ),
     );
 
     if (changed == true && mounted) {
       await provider.load(widget.leadName);
-      Navigator.pop(context, true);
+      if (!mounted) return;
+      navigator.pop(true);
     }
   }
 
   Future<void> _openAddFollowUpDialog() async {
+    final provider = context.read<LeadDetailsProvider>();
+    final messenger = ScaffoldMessenger.of(context);
     final saved = await showDialog<bool>(
       context: context,
       builder: (_) => _AddLeadFollowUpDialog(leadName: widget.leadName),
     );
 
     if (saved == true && mounted) {
-      await context.read<LeadDetailsProvider>().load(widget.leadName);
-      ScaffoldMessenger.of(context).showSnackBar(
+      await provider.load(widget.leadName);
+      if (!mounted) return;
+      messenger.showSnackBar(
         const SnackBar(content: Text('Follow up added successfully')),
       );
     }
+  }
+
+  Future<void> _openCreateOpportunity() async {
+    final created = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OpportunityScope(
+          child: OpportunityFormPage(
+            initialData: {
+              'opportunity_from': 'Lead',
+              'party_name': widget.leadName,
+            },
+          ),
+        ),
+      ),
+    );
+
+    if (created == true && mounted) {
+      _refreshLeadOpportunities();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Opportunity created for this lead')),
+      );
+    }
+  }
+
+  Future<void> _openOpportunity(String opportunityName) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OpportunityScope(
+          child: OpportunityDetailsPage(opportunityName: opportunityName),
+        ),
+      ),
+    );
+    if (mounted) _refreshLeadOpportunities();
   }
 
   @override
@@ -87,82 +147,89 @@ class _LeadDetailsPageState extends State<LeadDetailsPage> {
       body: provider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : provider.error != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Text(
-                      provider.error!,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.red),
-                    ),
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  provider.error!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+            )
+          : details == null
+          ? const Center(child: Text('No lead details found'))
+          : RefreshIndicator(
+              onRefresh: () => provider.load(widget.leadName),
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                children: [
+                  _LeadSummaryCard(data: details.data),
+                  const SizedBox(height: 16),
+                  _QuickActionsCard(data: details.data),
+                  const SizedBox(height: 16),
+                  _LeadOpportunitiesCard(
+                    future: _leadOpportunitiesFuture,
+                    onRefresh: _refreshLeadOpportunities,
+                    onCreate: _openCreateOpportunity,
+                    onOpen: _openOpportunity,
                   ),
-                )
-              : details == null
-                  ? const Center(child: Text('No lead details found'))
-                  : RefreshIndicator(
-                      onRefresh: () => provider.load(widget.leadName),
-                      child: ListView(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                        children: [
-                          _LeadSummaryCard(data: details.data),
-                          const SizedBox(height: 16),
-                          _QuickActionsCard(data: details.data),
-                          const SizedBox(height: 16),
-                          _SectionTitle(
-                            title: 'Lead Data',
-                            actionLabel: 'Edit',
-                            onTap: _openEditForm,
+                  const SizedBox(height: 16),
+                  _SectionTitle(
+                    title: 'Lead Data',
+                    actionLabel: 'Edit',
+                    onTap: _openEditForm,
+                  ),
+                  const SizedBox(height: 8),
+                  ...details.data.entries
+                      .where((entry) => entry.value != null)
+                      .where(
+                        (entry) => entry.value.toString().trim().isNotEmpty,
+                      )
+                      .map(
+                        (entry) => Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            title: Text(_labelFromKey(entry.key)),
+                            subtitle: Text(entry.value.toString()),
                           ),
-                          const SizedBox(height: 8),
-                          ...details.data.entries
-                              .where((entry) => entry.value != null)
-                              .where(
-                                (entry) => entry.value.toString().trim().isNotEmpty,
-                              )
-                              .map(
-                                (entry) => Card(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  child: ListTile(
-                                    title: Text(_labelFromKey(entry.key)),
-                                    subtitle: Text(entry.value.toString()),
-                                  ),
-                                ),
-                              ),
-                          const SizedBox(height: 12),
-                          _SectionTitle(
-                            title: 'Follow Ups',
-                            actionLabel: 'Add',
-                            onTap: _openAddFollowUpDialog,
-                          ),
-                          const SizedBox(height: 8),
-                          if (details.followUps.isEmpty)
-                            const Card(
-                              child: Padding(
-                                padding: EdgeInsets.all(16),
-                                child: Text('No follow ups available'),
-                              ),
-                            )
-                          else
-                            ...details.followUps.map(
-                              (item) => _FollowUpCard(followUp: item),
-                            ),
-                          const SizedBox(height: 12),
-                          const _SectionTitle(title: 'Activity Log'),
-                          const SizedBox(height: 8),
-                          if (details.activityLog.isEmpty)
-                            const Card(
-                              child: Padding(
-                                padding: EdgeInsets.all(16),
-                                child: Text('No activity log available'),
-                              ),
-                            )
-                          else
-                            ...details.activityLog.map(
-                              (item) => _ActivityCard(activity: item),
-                            ),
-                        ],
+                        ),
                       ),
+                  const SizedBox(height: 12),
+                  _SectionTitle(
+                    title: 'Follow Ups',
+                    actionLabel: 'Add',
+                    onTap: _openAddFollowUpDialog,
+                  ),
+                  const SizedBox(height: 8),
+                  if (details.followUps.isEmpty)
+                    const Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text('No follow ups available'),
+                      ),
+                    )
+                  else
+                    ...details.followUps.map(
+                      (item) => _FollowUpCard(followUp: item),
                     ),
+                  const SizedBox(height: 12),
+                  const _SectionTitle(title: 'Activity Log'),
+                  const SizedBox(height: 8),
+                  if (details.activityLog.isEmpty)
+                    const Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text('No activity log available'),
+                      ),
+                    )
+                  else
+                    ...details.activityLog.map(
+                      (item) => _ActivityCard(activity: item),
+                    ),
+                ],
+              ),
+            ),
     );
   }
 }
@@ -475,6 +542,227 @@ class _QuickActionsCard extends StatelessWidget {
   }
 }
 
+class _LeadOpportunitiesCard extends StatelessWidget {
+  const _LeadOpportunitiesCard({
+    required this.future,
+    required this.onRefresh,
+    required this.onCreate,
+    required this.onOpen,
+  });
+
+  final Future<List<Opportunity>> future;
+  final VoidCallback onRefresh;
+  final VoidCallback onCreate;
+  final ValueChanged<String> onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Opportunities',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Refresh opportunities',
+                  onPressed: onRefresh,
+                  icon: const Icon(Icons.refresh_rounded),
+                ),
+                FilledButton.icon(
+                  onPressed: onCreate,
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('Add'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            FutureBuilder<List<Opportunity>>(
+              future: future,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 18),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+
+                if (snapshot.hasError) {
+                  return _InlineState(
+                    icon: Icons.error_outline_rounded,
+                    message: snapshot.error.toString(),
+                    actionLabel: 'Retry',
+                    onAction: onRefresh,
+                  );
+                }
+
+                final opportunities = snapshot.data ?? const <Opportunity>[];
+                if (opportunities.isEmpty) {
+                  return _InlineState(
+                    icon: Icons.trending_up_rounded,
+                    message: 'No opportunities linked to this lead yet.',
+                    actionLabel: 'Create Opportunity',
+                    onAction: onCreate,
+                  );
+                }
+
+                return Column(
+                  children: [
+                    ...opportunities
+                        .take(5)
+                        .map(
+                          (item) => _LeadOpportunityTile(
+                            opportunity: item,
+                            onTap: () => onOpen(item.name),
+                          ),
+                        ),
+                    if (opportunities.length > 5)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(
+                          '+${opportunities.length - 5} more linked opportunities',
+                          style: const TextStyle(color: Color(0xFF64748B)),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LeadOpportunityTile extends StatelessWidget {
+  const _LeadOpportunityTile({required this.opportunity, required this.onTap});
+
+  final Opportunity opportunity;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final title = opportunity.firstName.trim().isEmpty
+        ? opportunity.name
+        : opportunity.firstName;
+    final subtitleParts = [
+      if (opportunity.content.trim().isNotEmpty) opportunity.content,
+      if (opportunity.nextFollowUpDate.trim().isNotEmpty)
+        'Next Follow Up: ${_displayDate(opportunity.nextFollowUpDate)}',
+    ];
+
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: const CircleAvatar(
+        backgroundColor: Color(0xFFFFF3C7),
+        child: Icon(Icons.trending_up_rounded, color: Color(0xFFB45309)),
+      ),
+      title: Text(
+        title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontWeight: FontWeight.w700),
+      ),
+      subtitle: Text(
+        subtitleParts.isEmpty ? opportunity.name : subtitleParts.join('\n'),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          _SmallStatusChip(label: opportunity.status),
+          if ((opportunity.workflowState ?? '').trim().isNotEmpty) ...[
+            const SizedBox(height: 4),
+            _SmallStatusChip(
+              label: opportunity.workflowState!,
+              color: const Color(0xFF7C3AED),
+            ),
+          ],
+        ],
+      ),
+      onTap: onTap,
+    );
+  }
+}
+
+class _InlineState extends StatelessWidget {
+  const _InlineState({
+    required this.icon,
+    required this.message,
+    required this.actionLabel,
+    required this.onAction,
+  });
+
+  final IconData icon;
+  final String message;
+  final String actionLabel;
+  final VoidCallback onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7ED),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: const Color(0xFFB45309)),
+          const SizedBox(height: 8),
+          Text(message, textAlign: TextAlign.center),
+          const SizedBox(height: 8),
+          OutlinedButton(onPressed: onAction, child: Text(actionLabel)),
+        ],
+      ),
+    );
+  }
+}
+
+class _SmallStatusChip extends StatelessWidget {
+  const _SmallStatusChip({
+    required this.label,
+    this.color = const Color(0xFF0F766E),
+  });
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = label.trim().isEmpty ? '-' : label.trim();
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 112),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
 class _ActionButton extends StatelessWidget {
   const _ActionButton({
     required this.label,
@@ -517,18 +805,17 @@ class _SummaryChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
 }
 
 class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({
-    required this.title,
-    this.actionLabel,
-    this.onTap,
-  });
+  const _SectionTitle({required this.title, this.actionLabel, this.onTap});
 
   final String title;
   final String? actionLabel;
@@ -570,7 +857,9 @@ class _FollowUpCard extends StatelessWidget {
             ),
             if (followUp.expectedResultDate.isNotEmpty) ...[
               const SizedBox(height: 4),
-              Text('Expected Result: ${_displayDate(followUp.expectedResultDate)}'),
+              Text(
+                'Expected Result: ${_displayDate(followUp.expectedResultDate)}',
+              ),
             ],
             if (followUp.details.isNotEmpty) ...[
               const SizedBox(height: 8),
@@ -745,8 +1034,14 @@ _ParsedActivityDescription _parseActivityDescription(String raw) {
   if (anchor != null) {
     final href = anchor.group(1) ?? '';
     final label = anchor.group(2) ?? '';
-    final prefix = raw.substring(0, anchor.start).replaceAll(RegExp(r'<[^>]+>'), '').trim();
-    final suffix = raw.substring(anchor.end).replaceAll(RegExp(r'<[^>]+>'), '').trim();
+    final prefix = raw
+        .substring(0, anchor.start)
+        .replaceAll(RegExp(r'<[^>]+>'), '')
+        .trim();
+    final suffix = raw
+        .substring(anchor.end)
+        .replaceAll(RegExp(r'<[^>]+>'), '')
+        .trim();
     final textParts = [
       if (prefix.isNotEmpty) prefix,
       if (label.isNotEmpty) label,
@@ -768,8 +1063,5 @@ class _ParsedActivityDescription {
   final String text;
   final String? link;
 
-  const _ParsedActivityDescription({
-    required this.text,
-    this.link,
-  });
+  const _ParsedActivityDescription({required this.text, this.link});
 }

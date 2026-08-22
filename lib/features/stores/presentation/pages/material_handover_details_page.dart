@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/widgets/action_loading_overlay.dart';
 import '../../domain/entities/material_handover_details.dart';
 import '../../domain/entities/material_handover_item.dart';
 import '../providers/material_handovers_provider.dart';
@@ -35,41 +36,48 @@ class _MaterialHandoverDetailsPageState
     final details = provider.details;
     return Scaffold(
       appBar: AppBar(title: Text(widget.handoverName)),
-      body: provider.isLoading && details == null
-          ? const Center(child: CircularProgressIndicator())
-          : provider.error != null && details == null
-          ? _ErrorState(
-              message: provider.error!,
-              onRetry: () => provider.loadDetails(widget.handoverName),
-            )
-          : details == null
-          ? const Center(child: Text('No handover details found'))
-          : RefreshIndicator(
-              onRefresh: () => provider.loadDetails(widget.handoverName),
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-                children: [
-                  _Header(details: details),
-                  const SizedBox(height: 12),
-                  _Actions(provider: provider, details: details),
-                  const SizedBox(height: 18),
-                  const Text(
-                    'Items',
-                    style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900),
-                  ),
-                  const SizedBox(height: 10),
-                  if (details.items.isEmpty)
-                    const Card(
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text('No items found'),
+      body: ActionLoadingOverlay(
+        isLoading: provider.isProcessing,
+        message: 'Capturing evidence and submitting...',
+        child: provider.isLoading && details == null
+            ? const Center(child: CircularProgressIndicator())
+            : provider.error != null && details == null
+            ? _ErrorState(
+                message: provider.error!,
+                onRetry: () => provider.loadDetails(widget.handoverName),
+              )
+            : details == null
+            ? const Center(child: Text('No handover details found'))
+            : RefreshIndicator(
+                onRefresh: () => provider.loadDetails(widget.handoverName),
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+                  children: [
+                    _Header(details: details),
+                    const SizedBox(height: 12),
+                    _Actions(provider: provider, details: details),
+                    const SizedBox(height: 18),
+                    const Text(
+                      'Items',
+                      style: TextStyle(
+                        fontSize: 21,
+                        fontWeight: FontWeight.w900,
                       ),
-                    )
-                  else
-                    ...details.items.map(_ItemCard.new),
-                ],
+                    ),
+                    const SizedBox(height: 10),
+                    if (details.items.isEmpty)
+                      const Card(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Text('No items found'),
+                        ),
+                      )
+                    else
+                      ...details.items.map(_ItemCard.new),
+                  ],
+                ),
               ),
-            ),
+      ),
     );
   }
 }
@@ -140,16 +148,32 @@ class _Actions extends StatelessWidget {
           onPressed: provider.isProcessing
               ? null
               : () => _confirm(context, provider, 'Confirm Pickup'),
-          icon: const Icon(Icons.local_shipping_outlined),
-          label: const Text('Confirm Pickup'),
+          icon: provider.isProcessing
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.local_shipping_outlined),
+          label: Text(
+            provider.isProcessing ? 'Submitting...' : 'Confirm Pickup',
+          ),
         ),
       if (details.canConfirmDelivery)
         FilledButton.icon(
           onPressed: provider.isProcessing
               ? null
               : () => _confirm(context, provider, 'Confirm Delivery'),
-          icon: const Icon(Icons.inventory_rounded),
-          label: const Text('Confirm Delivery'),
+          icon: provider.isProcessing
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.inventory_rounded),
+          label: Text(
+            provider.isProcessing ? 'Submitting...' : 'Confirm Delivery',
+          ),
         ),
       if (details.canCreateReturn)
         OutlinedButton.icon(

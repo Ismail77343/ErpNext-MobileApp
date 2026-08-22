@@ -1,6 +1,7 @@
 import '../entities/material_handover.dart';
 import '../entities/material_handover_details.dart';
 import '../entities/material_handover_item.dart';
+import '../entities/material_handover_location.dart';
 import '../entities/material_return_line.dart';
 
 abstract class MaterialHandoverRepository {
@@ -16,6 +17,7 @@ abstract class MaterialHandoverRepository {
     required String name,
     required String photoBase64,
     required String photoFilename,
+    required MaterialHandoverLocation location,
     required String notes,
   });
 
@@ -23,6 +25,7 @@ abstract class MaterialHandoverRepository {
     required String name,
     required String photoBase64,
     required String photoFilename,
+    required MaterialHandoverLocation location,
     required String notes,
   });
 
@@ -33,6 +36,7 @@ abstract class MaterialHandoverRepository {
     required List<MaterialReturnLine> items,
     required String photoBase64,
     required String photoFilename,
+    required MaterialHandoverLocation location,
     required String notes,
   });
 }

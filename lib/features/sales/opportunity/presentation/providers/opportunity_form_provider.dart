@@ -25,10 +25,12 @@ class OpportunityFormProvider extends ChangeNotifier {
 
   final GetOpportunityFormUseCase _getOpportunityFormUseCase;
   final GetOpportunityPartyPrefillUseCase _getOpportunityPartyPrefillUseCase;
-  final GetOpportunityRequiredFieldsUseCase _getOpportunityRequiredFieldsUseCase;
+  final GetOpportunityRequiredFieldsUseCase
+  _getOpportunityRequiredFieldsUseCase;
   final CreateOpportunityUseCase _createOpportunityUseCase;
   final UpdateOpportunityUseCase _updateOpportunityUseCase;
-  final SearchOpportunityLinkOptionsUseCase _searchOpportunityLinkOptionsUseCase;
+  final SearchOpportunityLinkOptionsUseCase
+  _searchOpportunityLinkOptionsUseCase;
 
   final Map<String, String> _values = {};
   final Map<String, OpportunityRequiredFieldDefinition> _definitions = {};
@@ -54,25 +56,28 @@ class OpportunityFormProvider extends ChangeNotifier {
 
   List<OpportunityField> get fields {
     final list = _definitions.values
-        .map(
-          (definition) {
-            final normalized = _normalizeDefinition(definition);
-            return OpportunityField(
-              key: normalized.fieldname,
-              label: normalized.label,
-              type: normalized.fieldType,
-              required: _requiredKeys.contains(normalized.fieldname) || normalized.required,
-              readOnly: normalized.readOnly,
-              hidden: normalized.hidden,
-              value: _values[normalized.fieldname] ?? normalized.value,
-              options: normalized.options,
-              linkDoctype: _resolveLinkDoctype(normalized),
-              linkDoctypeField: normalized.linkDoctypeField,
-            );
-          },
-        )
+        .map((definition) {
+          final normalized = _normalizeDefinition(definition);
+          return OpportunityField(
+            key: normalized.fieldname,
+            label: normalized.label,
+            type: normalized.fieldType,
+            required:
+                _requiredKeys.contains(normalized.fieldname) ||
+                normalized.required,
+            readOnly: normalized.readOnly,
+            hidden: normalized.hidden,
+            value: _values[normalized.fieldname] ?? normalized.value,
+            options: normalized.options,
+            linkDoctype: _resolveLinkDoctype(normalized),
+            linkDoctypeField: normalized.linkDoctypeField,
+          );
+        })
         .where((field) => !field.hidden)
-        .where((field) => !(isEdit && const {'id', 'name', 'doctype'}.contains(field.key)))
+        .where(
+          (field) =>
+              !(isEdit && const {'id', 'name', 'doctype'}.contains(field.key)),
+        )
         .where((field) => !const {'content', 'title'}.contains(field.key))
         .toList();
 
@@ -137,8 +142,17 @@ class OpportunityFormProvider extends ChangeNotifier {
         final text = entry.value?.toString().trim() ?? '';
         if (text.isNotEmpty) {
           _values[entry.key] = text;
+          if (!isEdit) {
+            _touchedKeys.add(entry.key);
+          }
         }
       }
+    }
+
+    if (!isEdit &&
+        (_values['opportunity_from']?.trim().isNotEmpty ?? false) &&
+        (_values['party_name']?.trim().isNotEmpty ?? false)) {
+      await _applyPartyPrefill();
     }
 
     await refreshRequiredFields();
@@ -207,12 +221,18 @@ class OpportunityFormProvider extends ChangeNotifier {
     if (field.type == OpportunityFieldType.select) {
       final normalized = query.trim().toLowerCase();
       final items = field.options
-          .where((item) => normalized.isEmpty || item.toLowerCase().contains(normalized))
+          .where(
+            (item) =>
+                normalized.isEmpty || item.toLowerCase().contains(normalized),
+          )
           .map((item) => OpportunityOptionItem(value: item, label: item))
           .toList();
       if (field.value.isNotEmpty &&
           items.every((item) => item.value != field.value)) {
-        items.insert(0, OpportunityOptionItem(value: field.value, label: field.value));
+        items.insert(
+          0,
+          OpportunityOptionItem(value: field.value, label: field.value),
+        );
       }
       return items;
     }
@@ -269,7 +289,9 @@ class OpportunityFormProvider extends ChangeNotifier {
         await _updateOpportunityUseCase.call(_opportunityName!, payload);
         _successMessage = 'Opportunity updated successfully.';
       } else {
-        final createdOpportunityName = await _createOpportunityUseCase.call(payload);
+        final createdOpportunityName = await _createOpportunityUseCase.call(
+          payload,
+        );
         if (createdOpportunityName.isNotEmpty) {
           _opportunityName = createdOpportunityName;
         }
@@ -374,7 +396,8 @@ class OpportunityFormProvider extends ChangeNotifier {
       final definition = _definitions[entry.key];
       if (entry.key == 'content') continue;
 
-      final shouldInclude = isEdit ||
+      final shouldInclude =
+          isEdit ||
           _requiredKeys.contains(entry.key) ||
           definition?.required == true ||
           definition?.readOnly == true ||
@@ -426,7 +449,8 @@ class OpportunityFormProvider extends ChangeNotifier {
 
     final parts = <String>[
       if (primary.isNotEmpty) primary,
-      if (partyType.isNotEmpty && partyName.isNotEmpty) '$partyType: $partyName',
+      if (partyType.isNotEmpty && partyName.isNotEmpty)
+        '$partyType: $partyName',
       if (status.isNotEmpty) 'Status: $status',
       if (amount.isNotEmpty) 'Amount: $amount',
       if (nextFollowUp.isNotEmpty) 'Next Follow Up: $nextFollowUp',

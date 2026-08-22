@@ -1,3 +1,4 @@
+import '../entities/material_handover_location.dart';
 import '../repositories/material_handover_repository.dart';
 
 class ConfirmMaterialDeliveryUseCase {
@@ -9,12 +10,14 @@ class ConfirmMaterialDeliveryUseCase {
     required String name,
     required String photoBase64,
     required String photoFilename,
+    required MaterialHandoverLocation location,
     required String notes,
   }) {
     return _repository.confirmDelivery(
       name: name,
       photoBase64: photoBase64,
       photoFilename: photoFilename,
+      location: location,
       notes: notes,
     );
   }

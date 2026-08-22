@@ -1,6 +1,7 @@
 class Opportunity {
   final String name;
   final String opportunityName;
+  final String partyName;
   final String firstName;
   final String companyName;
   final String content;
@@ -23,6 +24,7 @@ class Opportunity {
   const Opportunity({
     required this.name,
     required this.opportunityName,
+    required this.partyName,
     required this.firstName,
     required this.companyName,
     required this.content,

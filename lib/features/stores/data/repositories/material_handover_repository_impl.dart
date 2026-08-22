@@ -1,6 +1,7 @@
 import '../../domain/entities/material_handover.dart';
 import '../../domain/entities/material_handover_details.dart';
 import '../../domain/entities/material_handover_item.dart';
+import '../../domain/entities/material_handover_location.dart';
 import '../../domain/entities/material_return_line.dart';
 import '../../domain/repositories/material_handover_repository.dart';
 import '../datasources/material_handover_remote_datasource.dart';
@@ -33,12 +34,14 @@ class MaterialHandoverRepositoryImpl implements MaterialHandoverRepository {
     required String name,
     required String photoBase64,
     required String photoFilename,
+    required MaterialHandoverLocation location,
     required String notes,
   }) {
     return _remoteDataSource.confirmPickup(
       name: name,
       photoBase64: photoBase64,
       photoFilename: photoFilename,
+      location: location,
       notes: notes,
     );
   }
@@ -48,12 +51,14 @@ class MaterialHandoverRepositoryImpl implements MaterialHandoverRepository {
     required String name,
     required String photoBase64,
     required String photoFilename,
+    required MaterialHandoverLocation location,
     required String notes,
   }) {
     return _remoteDataSource.confirmDelivery(
       name: name,
       photoBase64: photoBase64,
       photoFilename: photoFilename,
+      location: location,
       notes: notes,
     );
   }
@@ -69,6 +74,7 @@ class MaterialHandoverRepositoryImpl implements MaterialHandoverRepository {
     required List<MaterialReturnLine> items,
     required String photoBase64,
     required String photoFilename,
+    required MaterialHandoverLocation location,
     required String notes,
   }) {
     return _remoteDataSource.createReturn(
@@ -76,6 +82,7 @@ class MaterialHandoverRepositoryImpl implements MaterialHandoverRepository {
       items: items,
       photoBase64: photoBase64,
       photoFilename: photoFilename,
+      location: location,
       notes: notes,
     );
   }

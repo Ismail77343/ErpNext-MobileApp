@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/widgets/action_loading_overlay.dart';
 import '../../domain/entities/material_handover_item.dart';
 import '../../domain/entities/material_return_line.dart';
 import '../providers/material_handovers_provider.dart';
@@ -44,46 +45,50 @@ class _MaterialReturnPageState extends State<MaterialReturnPage> {
     final options = provider.returnOptions;
     return Scaffold(
       appBar: AppBar(title: const Text('Create Return Request')),
-      body: provider.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : provider.error != null && options.isEmpty
-          ? _State(
-              message: provider.error!,
-              onRetry: () => provider.loadReturnOptions(widget.handoverName),
-            )
-          : options.isEmpty
-          ? _State(
-              message: 'No returnable items are available.',
-              onRetry: () => provider.loadReturnOptions(widget.handoverName),
-            )
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
-              children: [
-                const Text(
-                  'Select quantities to return',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
-                ),
-                const SizedBox(height: 12),
-                ...options.map(_returnItemEditor),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _notesController,
-                  minLines: 3,
-                  maxLines: 5,
-                  decoration: const InputDecoration(
-                    labelText: 'Return Notes',
-                    border: OutlineInputBorder(),
+      body: ActionLoadingOverlay(
+        isLoading: provider.isProcessing,
+        message: 'Creating return request...',
+        child: provider.isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : provider.error != null && options.isEmpty
+            ? _State(
+                message: provider.error!,
+                onRetry: () => provider.loadReturnOptions(widget.handoverName),
+              )
+            : options.isEmpty
+            ? _State(
+                message: 'No returnable items are available.',
+                onRetry: () => provider.loadReturnOptions(widget.handoverName),
+              )
+            : ListView(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+                children: [
+                  const Text(
+                    'Select quantities to return',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
                   ),
-                ),
-                if (provider.error != null) ...[
                   const SizedBox(height: 12),
-                  Text(
-                    provider.error!,
-                    style: const TextStyle(color: Colors.red),
+                  ...options.map(_returnItemEditor),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _notesController,
+                    minLines: 3,
+                    maxLines: 5,
+                    decoration: const InputDecoration(
+                      labelText: 'Return Notes',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
+                  if (provider.error != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      provider.error!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ],
                 ],
-              ],
-            ),
+              ),
+      ),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -94,7 +99,7 @@ class _MaterialReturnPageState extends State<MaterialReturnPage> {
             icon: const Icon(Icons.camera_alt_outlined),
             label: Text(
               provider.isProcessing
-                  ? 'Creating...'
+                  ? 'Creating request...'
                   : 'Capture Photo & Create Request',
             ),
           ),

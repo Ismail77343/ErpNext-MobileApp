@@ -4,6 +4,7 @@ class OpportunityModel extends Opportunity {
   const OpportunityModel({
     required super.name,
     required super.opportunityName,
+    required super.partyName,
     required super.firstName,
     required super.companyName,
     required super.content,
@@ -38,28 +39,36 @@ class OpportunityModel extends Opportunity {
     return OpportunityModel(
       name: name,
       opportunityName: name,
-      firstName: json['display_name']?.toString() ??
+      partyName: json['party_name']?.toString() ?? '',
+      firstName:
+          json['display_name']?.toString() ??
           json['customer_name']?.toString() ??
           json['party_name']?.toString() ??
           name,
       companyName: json['customer_name']?.toString() ?? '',
       content: json['content']?.toString() ?? '',
       email: contactMap['email']?.toString() ?? json['email']?.toString() ?? '',
-      mobileNo: contactMap['mobile']?.toString() ?? json['mobile']?.toString() ?? '',
+      mobileNo:
+          contactMap['mobile']?.toString() ?? json['mobile']?.toString() ?? '',
       status: json['status']?.toString() ?? '',
       workflowState: json['workflow_state']?.toString() ?? '',
       source: json['opportunity_from']?.toString() ?? '',
       lastModified: json['modified']?.toString() ?? '',
-      lastUpdateDate: json['last_update_date']?.toString() ??
+      lastUpdateDate:
+          json['last_update_date']?.toString() ??
           summaryMap['last_update_date']?.toString() ??
           '',
-      nextFollowUpDate: json['next_follow_up_date']?.toString() ??
+      nextFollowUpDate:
+          json['next_follow_up_date']?.toString() ??
           summaryMap['next_follow_up_date']?.toString() ??
           '',
-      lastFollowUpReport: json['last_follow_up_report']?.toString() ??
+      lastFollowUpReport:
+          json['last_follow_up_report']?.toString() ??
           summaryMap['last_follow_up_report']?.toString() ??
           '',
-      hasFollowUp: _toBool(json['has_follow_up'] ?? summaryMap['has_follow_up']),
+      hasFollowUp: _toBool(
+        json['has_follow_up'] ?? summaryMap['has_follow_up'],
+      ),
       isOverdue: _toBool(json['is_overdue'] ?? summaryMap['is_overdue']),
       isDueToday: _toBool(json['is_due_today'] ?? summaryMap['is_due_today']),
       isDueThisWeek: _toBool(

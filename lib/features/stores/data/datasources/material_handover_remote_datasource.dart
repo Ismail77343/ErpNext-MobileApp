@@ -6,6 +6,7 @@ import '../../../../core/constants/api_constants.dart';
 import '../../../../core/network/auth_session.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/material_return_line.dart';
+import '../../domain/entities/material_handover_location.dart';
 import '../models/material_handover_details_model.dart';
 import '../models/material_handover_item_model.dart';
 import '../models/material_handover_model.dart';
@@ -54,12 +55,14 @@ class MaterialHandoverRemoteDataSource {
     required String name,
     required String photoBase64,
     required String photoFilename,
+    required MaterialHandoverLocation location,
     required String notes,
   }) async {
     await _post(ApiConstants.confirmMaterialTransferPickupEndpoint, {
       'name': name,
       'photo_base64': _dataUri(photoBase64, photoFilename),
       'photo_filename': photoFilename,
+      ..._locationPayload(location),
       'notes': notes,
     });
   }
@@ -68,12 +71,14 @@ class MaterialHandoverRemoteDataSource {
     required String name,
     required String photoBase64,
     required String photoFilename,
+    required MaterialHandoverLocation location,
     required String notes,
   }) async {
     await _post(ApiConstants.confirmMaterialTransferDeliveryEndpoint, {
       'name': name,
       'photo_base64': _dataUri(photoBase64, photoFilename),
       'photo_filename': photoFilename,
+      ..._locationPayload(location),
       'notes': notes,
     });
   }
@@ -97,6 +102,7 @@ class MaterialHandoverRemoteDataSource {
     required List<MaterialReturnLine> items,
     required String photoBase64,
     required String photoFilename,
+    required MaterialHandoverLocation location,
     required String notes,
   }) async {
     final decoded = await _post(
@@ -113,6 +119,7 @@ class MaterialHandoverRemoteDataSource {
             .toList(),
         'photo_base64': _dataUri(photoBase64, photoFilename),
         'photo_filename': photoFilename,
+        ..._locationPayload(location),
         'notes': notes,
       },
     );
@@ -154,6 +161,14 @@ class MaterialHandoverRemoteDataSource {
         ? 'image/png'
         : 'image/jpeg';
     return 'data:$mime;base64,$base64';
+  }
+
+  Map<String, dynamic> _locationPayload(MaterialHandoverLocation location) {
+    return {
+      'latitude': location.latitude,
+      'longitude': location.longitude,
+      'accuracy_meters': location.accuracyMeters,
+    };
   }
 
   List<dynamic> _extractList(dynamic decoded) {

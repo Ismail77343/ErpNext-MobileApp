@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../../core/widgets/action_loading_overlay.dart';
 import '../../../../../core/utils/app_logger.dart';
 import '../../domain/entities/opportunity_field.dart';
 import '../../domain/entities/opportunity_option_item.dart';
@@ -65,20 +66,22 @@ class _OpportunityFormPageState extends State<OpportunityFormPage> {
     if (!_formKey.currentState!.validate()) return;
 
     final provider = context.read<OpportunityFormProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
     final success = await provider.submit();
     if (!mounted) return;
 
     if (!success) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(content: Text(provider.error ?? 'Could not save opportunity')),
       );
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
+    messenger.showSnackBar(
       SnackBar(content: Text(provider.successMessage ?? 'Saved')),
     );
-    Navigator.pop(context, true);
+    navigator.pop(true);
   }
 
   @override
@@ -89,137 +92,157 @@ class _OpportunityFormPageState extends State<OpportunityFormPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.opportunityName == null ? 'Create Opportunity' : 'Edit Opportunity'),
+        title: Text(
+          widget.opportunityName == null
+              ? 'Create Opportunity'
+              : 'Edit Opportunity',
+        ),
         actions: [
           IconButton(
-            onPressed: provider.isLoading ? null : provider.refreshRequiredFields,
+            onPressed: provider.isLoading
+                ? null
+                : provider.refreshRequiredFields,
             icon: const Icon(Icons.refresh_rounded),
           ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFFEDD5), Color(0xFFFFF7ED)],
-                ),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.opportunityName == null
-                        ? 'Dynamic Opportunity Form'
-                        : 'Update Opportunity Data',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Form fields come directly from the Opportunity API, including Select, Link, and Dynamic Link fields.',
-                  ),
-                  if (widget.opportunityName != null) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      'Opportunity ID: ${widget.opportunityName}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF64748B),
-                      ),
-                    ),
-                  ],
-                  if (provider.missingKeys.isNotEmpty) ...[
-                    const SizedBox(height: 10),
-                    Text(
-                      'Missing: ${provider.missingKeys.join(', ')}',
-                      style: const TextStyle(
-                        color: Color(0xFFB91C1C),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            if (provider.contentPreview.isNotEmpty) ...[
-              const SizedBox(height: 12),
+      body: ActionLoadingOverlay(
+        isLoading: provider.isSubmitting,
+        message: widget.opportunityName == null
+            ? 'Creating opportunity...'
+            : 'Updating opportunity...',
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
               Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFEDD5), Color(0xFFFFF7ED)],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Content Preview',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF0F172A),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
                     Text(
-                      provider.contentPreview,
-                      style: const TextStyle(color: Color(0xFF475569)),
+                      widget.opportunityName == null
+                          ? 'Dynamic Opportunity Form'
+                          : 'Update Opportunity Data',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     const Text(
-                      'This preview is generated automatically and will be built by the server on save.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF64748B),
-                      ),
+                      'Form fields come directly from the Opportunity API, including Select, Link, and Dynamic Link fields.',
                     ),
+                    if (widget.opportunityName != null) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        'Opportunity ID: ${widget.opportunityName}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                    if (provider.missingKeys.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        'Missing: ${provider.missingKeys.join(', ')}',
+                        style: const TextStyle(
+                          color: Color(0xFFB91C1C),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
+              if (provider.contentPreview.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Content Preview',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        provider.contentPreview,
+                        style: const TextStyle(color: Color(0xFF475569)),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'This preview is generated automatically and will be built by the server on save.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
+              ...fields.map(
+                (field) => Padding(
+                  padding: const EdgeInsets.only(bottom: 14),
+                  child: _OpportunityFieldInput(
+                    field: field,
+                    controller: _controllers[field.key]!,
+                    onChanged: (value) {
+                      AppLogger.sales('opportunity form changed ${field.key}');
+                      provider.updateValue(field.key, value);
+                    },
+                  ),
+                ),
+              ),
+              if (provider.error != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    provider.error!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ),
+              FilledButton.icon(
+                onPressed: provider.isSubmitting
+                    ? null
+                    : () => _submit(context),
+                icon: provider.isSubmitting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.save_rounded),
+                label: Text(
+                  provider.isSubmitting
+                      ? 'Saving...'
+                      : widget.opportunityName == null
+                      ? 'Create Opportunity'
+                      : 'Update Opportunity',
+                ),
+              ),
             ],
-            const SizedBox(height: 16),
-            ...fields.map(
-              (field) => Padding(
-                padding: const EdgeInsets.only(bottom: 14),
-                child: _OpportunityFieldInput(
-                  field: field,
-                  controller: _controllers[field.key]!,
-                  onChanged: (value) {
-                    AppLogger.sales('opportunity form changed ${field.key}');
-                    provider.updateValue(field.key, value);
-                  },
-                ),
-              ),
-            ),
-            if (provider.error != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text(
-                  provider.error!,
-                  style: const TextStyle(color: Colors.red),
-                ),
-              ),
-            FilledButton.icon(
-              onPressed: provider.isSubmitting ? null : () => _submit(context),
-              icon: provider.isSubmitting
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.save_rounded),
-              label: Text(widget.opportunityName == null ? 'Create Opportunity' : 'Update Opportunity'),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -266,9 +289,7 @@ class _OpportunityFieldInput extends StatelessWidget {
         alignLabelWithHint: field.type == OpportunityFieldType.multiline,
         filled: true,
         fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
       ),
       validator: (value) {
         if (field.required && (value == null || value.trim().isEmpty)) {
@@ -324,9 +345,7 @@ class _SelectableField extends StatelessWidget {
         helperText: helper,
         filled: true,
         fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
         suffixIcon: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -435,11 +454,14 @@ class _OptionsPickerSheetState extends State<_OptionsPickerSheet> {
                   const SizedBox(height: 12),
                   TextField(
                     controller: _searchController,
-                    autofocus: widget.field.type == OpportunityFieldType.link ||
+                    autofocus:
+                        widget.field.type == OpportunityFieldType.link ||
                         widget.field.type == OpportunityFieldType.dynamicLink,
                     decoration: InputDecoration(
-                      hintText: widget.field.type == OpportunityFieldType.link ||
-                              widget.field.type == OpportunityFieldType.dynamicLink
+                      hintText:
+                          widget.field.type == OpportunityFieldType.link ||
+                              widget.field.type ==
+                                  OpportunityFieldType.dynamicLink
                           ? 'Search ${widget.field.linkDoctype ?? 'items'}...'
                           : 'Search options...',
                       prefixIcon: const Icon(Icons.search_rounded),
@@ -457,32 +479,32 @@ class _OptionsPickerSheetState extends State<_OptionsPickerSheet> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _error != null
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: Text(
-                              _error!,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(color: Colors.red),
-                            ),
-                          ),
-                        )
-                      : _items.isEmpty
-                          ? const Center(child: Text('No results found'))
-                          : ListView.separated(
-                              itemCount: _items.length,
-                              separatorBuilder: (_, _) => const Divider(height: 1),
-                              itemBuilder: (context, index) {
-                                final item = _items[index];
-                                return ListTile(
-                                  title: Text(item.label),
-                                  subtitle: item.description.isEmpty
-                                      ? null
-                                      : Text(item.description),
-                                  onTap: () => Navigator.pop(context, item),
-                                );
-                              },
-                            ),
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Text(
+                          _error!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    )
+                  : _items.isEmpty
+                  ? const Center(child: Text('No results found'))
+                  : ListView.separated(
+                      itemCount: _items.length,
+                      separatorBuilder: (_, _) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final item = _items[index];
+                        return ListTile(
+                          title: Text(item.label),
+                          subtitle: item.description.isEmpty
+                              ? null
+                              : Text(item.description),
+                          onTap: () => Navigator.pop(context, item),
+                        );
+                      },
+                    ),
             ),
           ],
         ),

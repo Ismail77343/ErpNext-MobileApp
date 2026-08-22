@@ -30,10 +30,12 @@ class OpportunityRemoteDataSource {
     );
 
     if (response.statusCode != 200) {
-      throw Exception(_extractApiError(
-        response.body,
-        fallback: 'Opportunity form API is not available on the server.',
-      ));
+      throw Exception(
+        _extractApiError(
+          response.body,
+          fallback: 'Opportunity form API is not available on the server.',
+        ),
+      );
     }
 
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
@@ -64,17 +66,21 @@ class OpportunityRemoteDataSource {
       },
     );
 
-    AppLogger.sales('load opportunities start=$start limit=$limit status=$status');
+    AppLogger.sales(
+      'load opportunities start=$start limit=$limit status=$status',
+    );
     final response = await http.get(uri, headers: AuthSession.authHeaders());
     AppLogger.sales(
       'load opportunities response=${response.statusCode} body=${_preview(response.body)}',
     );
 
     if (response.statusCode != 200) {
-      throw Exception(_extractApiError(
-        response.body,
-        fallback: 'Opportunity list API is not available on the server.',
-      ));
+      throw Exception(
+        _extractApiError(
+          response.body,
+          fallback: 'Opportunity list API is not available on the server.',
+        ),
+      );
     }
 
     final decoded = jsonDecode(response.body);
@@ -94,14 +100,15 @@ class OpportunityRemoteDataSource {
     String? status,
     String? search,
   }) async {
-    final uri = ApiConstants.uri(
-      ApiConstants.opportunitiesDashboardSummaryEndpoint,
-    ).replace(
-      queryParameters: {
-        if (status != null && status.isNotEmpty) 'status': status,
-        if (search != null && search.isNotEmpty) 'search': search,
-      },
-    );
+    final uri =
+        ApiConstants.uri(
+          ApiConstants.opportunitiesDashboardSummaryEndpoint,
+        ).replace(
+          queryParameters: {
+            if (status != null && status.isNotEmpty) 'status': status,
+            if (search != null && search.isNotEmpty) 'search': search,
+          },
+        );
 
     final response = await http.get(uri, headers: AuthSession.authHeaders());
     AppLogger.sales(
@@ -109,10 +116,13 @@ class OpportunityRemoteDataSource {
     );
 
     if (response.statusCode != 200) {
-      throw Exception(_extractApiError(
-        response.body,
-        fallback: 'Opportunity dashboard summary API is not available on the server.',
-      ));
+      throw Exception(
+        _extractApiError(
+          response.body,
+          fallback:
+              'Opportunity dashboard summary API is not available on the server.',
+        ),
+      );
     }
 
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
@@ -123,12 +133,16 @@ class OpportunityRemoteDataSource {
     return OpportunityDashboardSummaryModel.fromJson(decoded);
   }
 
-  Future<OpportunityDetailsModel> getOpportunityDetails(String opportunityName) async {
-    final uri = ApiConstants.uri(ApiConstants.opportunityDetailsEndpoint).replace(
-      queryParameters: {'opportunity_name': opportunityName},
-    );
+  Future<OpportunityDetailsModel> getOpportunityDetails(
+    String opportunityName,
+  ) async {
+    final uri = ApiConstants.uri(
+      ApiConstants.opportunityDetailsEndpoint,
+    ).replace(queryParameters: {'opportunity_name': opportunityName});
 
-    AppLogger.sales('opportunity details request opportunity_name=$opportunityName');
+    AppLogger.sales(
+      'opportunity details request opportunity_name=$opportunityName',
+    );
     var response = await http.get(uri, headers: AuthSession.authHeaders());
     AppLogger.sales(
       'opportunity details GET response=${response.statusCode} body=${_preview(response.body)}',
@@ -146,10 +160,12 @@ class OpportunityRemoteDataSource {
     }
 
     if (response.statusCode != 200) {
-      throw Exception(_extractApiError(
-        response.body,
-        fallback: 'Opportunity details API is not available on the server.',
-      ));
+      throw Exception(
+        _extractApiError(
+          response.body,
+          fallback: 'Opportunity details API is not available on the server.',
+        ),
+      );
     }
 
     final decoded = jsonDecode(response.body);
@@ -164,7 +180,9 @@ class OpportunityRemoteDataSource {
   Future<OpportunityRequiredFieldsResultModel> getRequiredFields(
     Map<String, dynamic> data,
   ) async {
-    AppLogger.sales('opportunity required fields payload=${jsonEncode({'data': data})}');
+    AppLogger.sales(
+      'opportunity required fields payload=${jsonEncode({'data': data})}',
+    );
     final response = await http.post(
       ApiConstants.uri(ApiConstants.opportunityRequiredFieldsEndpoint),
       headers: AuthSession.authHeaders(),
@@ -175,10 +193,13 @@ class OpportunityRemoteDataSource {
     );
 
     if (response.statusCode != 200) {
-      throw Exception(_extractApiError(
-        response.body,
-        fallback: 'Opportunity required fields API is not available on the server.',
-      ));
+      throw Exception(
+        _extractApiError(
+          response.body,
+          fallback:
+              'Opportunity required fields API is not available on the server.',
+        ),
+      );
     }
 
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
@@ -201,10 +222,12 @@ class OpportunityRemoteDataSource {
     );
 
     if (response.statusCode != 200) {
-      throw Exception(_extractApiError(
-        response.body,
-        fallback: 'Create Opportunity API is not available on the server.',
-      ));
+      throw Exception(
+        _extractApiError(
+          response.body,
+          fallback: 'Create Opportunity API is not available on the server.',
+        ),
+      );
     }
 
     final decoded = jsonDecode(response.body);
@@ -213,20 +236,28 @@ class OpportunityRemoteDataSource {
       fallback: 'Create Opportunity API returned an error.',
     );
     final payload = _extractMap(decoded);
-    final messageMap = decoded is Map<String, dynamic> && decoded['message'] is Map<String, dynamic>
+    final messageMap =
+        decoded is Map<String, dynamic> &&
+            decoded['message'] is Map<String, dynamic>
         ? decoded['message'] as Map<String, dynamic>
         : const <String, dynamic>{};
-    final createdName = messageMap['opportunity_name']?.toString() ??
+    final createdName =
+        messageMap['opportunity_name']?.toString() ??
         decoded['opportunity_name']?.toString() ??
         payload['name']?.toString() ??
         payload['id']?.toString() ??
         payload['opportunity_name']?.toString() ??
         '';
-    AppLogger.sales('create opportunity parsed result=$createdName payload=$payload');
+    AppLogger.sales(
+      'create opportunity parsed result=$createdName payload=$payload',
+    );
     return createdName;
   }
 
-  Future<void> updateOpportunity(String opportunityName, Map<String, dynamic> data) async {
+  Future<void> updateOpportunity(
+    String opportunityName,
+    Map<String, dynamic> data,
+  ) async {
     AppLogger.sales(
       'update opportunity payload=${jsonEncode({'opportunity_name': opportunityName, 'data': data})}',
     );
@@ -240,10 +271,12 @@ class OpportunityRemoteDataSource {
     );
 
     if (response.statusCode != 200) {
-      throw Exception(_extractApiError(
-        response.body,
-        fallback: 'Update Opportunity API is not available on the server.',
-      ));
+      throw Exception(
+        _extractApiError(
+          response.body,
+          fallback: 'Update Opportunity API is not available on the server.',
+        ),
+      );
     }
 
     _throwIfApiPayloadError(
@@ -257,9 +290,7 @@ class OpportunityRemoteDataSource {
   ) async {
     final uri = ApiConstants.uri(
       ApiConstants.opportunityWorkflowActionsEndpoint,
-    ).replace(
-      queryParameters: {'opportunity_name': opportunityName},
-    );
+    ).replace(queryParameters: {'opportunity_name': opportunityName});
 
     final response = await http.get(uri, headers: AuthSession.authHeaders());
     AppLogger.sales(
@@ -267,10 +298,13 @@ class OpportunityRemoteDataSource {
     );
 
     if (response.statusCode != 200) {
-      throw Exception(_extractApiError(
-        response.body,
-        fallback: 'Opportunity workflow actions API is not available on the server.',
-      ));
+      throw Exception(
+        _extractApiError(
+          response.body,
+          fallback:
+              'Opportunity workflow actions API is not available on the server.',
+        ),
+      );
     }
 
     final decoded = jsonDecode(response.body);
@@ -278,7 +312,9 @@ class OpportunityRemoteDataSource {
       decoded,
       fallback: 'Opportunity workflow actions API returned an error.',
     );
-    return OpportunityWorkflowInfoModel.fromJson(decoded as Map<String, dynamic>);
+    return OpportunityWorkflowInfoModel.fromJson(
+      decoded as Map<String, dynamic>,
+    );
   }
 
   Future<OpportunityWorkflowInfoModel> executeWorkflowAction({
@@ -288,20 +324,20 @@ class OpportunityRemoteDataSource {
     final response = await http.post(
       ApiConstants.uri(ApiConstants.executeOpportunityWorkflowActionEndpoint),
       headers: AuthSession.authHeaders(),
-      body: jsonEncode({
-        'opportunity_name': opportunityName,
-        'action': action,
-      }),
+      body: jsonEncode({'opportunity_name': opportunityName, 'action': action}),
     );
     AppLogger.sales(
       'execute opportunity workflow response=${response.statusCode} body=${_preview(response.body)}',
     );
 
     if (response.statusCode != 200) {
-      throw Exception(_extractApiError(
-        response.body,
-        fallback: 'Execute opportunity workflow API is not available on the server.',
-      ));
+      throw Exception(
+        _extractApiError(
+          response.body,
+          fallback:
+              'Execute opportunity workflow API is not available on the server.',
+        ),
+      );
     }
 
     final decoded = jsonDecode(response.body);
@@ -309,7 +345,9 @@ class OpportunityRemoteDataSource {
       decoded,
       fallback: 'Execute opportunity workflow API returned an error.',
     );
-    return OpportunityWorkflowInfoModel.fromJson(decoded as Map<String, dynamic>);
+    return OpportunityWorkflowInfoModel.fromJson(
+      decoded as Map<String, dynamic>,
+    );
   }
 
   Future<void> addOpportunityFollowUp({
@@ -338,10 +376,12 @@ class OpportunityRemoteDataSource {
     );
 
     if (response.statusCode != 200) {
-      throw Exception(_extractApiError(
-        response.body,
-        fallback: 'Opportunity follow up API is not available on the server.',
-      ));
+      throw Exception(
+        _extractApiError(
+          response.body,
+          fallback: 'Opportunity follow up API is not available on the server.',
+        ),
+      );
     }
 
     final decoded = jsonDecode(response.body);
@@ -351,7 +391,8 @@ class OpportunityRemoteDataSource {
         final status = payload['status']?.toString().toLowerCase();
         if (status == 'error') {
           throw Exception(
-            payload['message']?.toString() ?? 'Add opportunity follow up failed',
+            payload['message']?.toString() ??
+                'Add opportunity follow up failed',
           );
         }
       }
@@ -362,7 +403,9 @@ class OpportunityRemoteDataSource {
     required String filePath,
     required String opportunityName,
   }) async {
-    AppLogger.sales('opportunity upload attachment start path=$filePath opportunity=$opportunityName');
+    AppLogger.sales(
+      'opportunity upload attachment start path=$filePath opportunity=$opportunityName',
+    );
 
     final request = http.MultipartRequest(
       'POST',
@@ -404,18 +447,23 @@ class OpportunityRemoteDataSource {
     return fileUrl;
   }
 
-  Future<List<OpportunityFollowUpModel>> getOpportunityFollowUps(String opportunityName) async {
-    final uri = ApiConstants.uri(ApiConstants.opportunityFollowUpsEndpoint).replace(
-      queryParameters: {'opportunity_name': opportunityName},
-    );
+  Future<List<OpportunityFollowUpModel>> getOpportunityFollowUps(
+    String opportunityName,
+  ) async {
+    final uri = ApiConstants.uri(
+      ApiConstants.opportunityFollowUpsEndpoint,
+    ).replace(queryParameters: {'opportunity_name': opportunityName});
 
     final response = await http.get(uri, headers: AuthSession.authHeaders());
 
     if (response.statusCode != 200) {
-      throw Exception(_extractApiError(
-        response.body,
-        fallback: 'Opportunity follow ups API is not available on the server.',
-      ));
+      throw Exception(
+        _extractApiError(
+          response.body,
+          fallback:
+              'Opportunity follow ups API is not available on the server.',
+        ),
+      );
     }
 
     final decoded = jsonDecode(response.body);
@@ -458,11 +506,7 @@ class OpportunityRemoteDataSource {
     }
 
     final uri = ApiConstants.uri(ApiConstants.searchLinkEndpoint).replace(
-      queryParameters: {
-        'doctype': doctype,
-        'txt': query,
-        'page_length': '20',
-      },
+      queryParameters: {'doctype': doctype, 'txt': query, 'page_length': '20'},
     );
 
     final response = await http.get(uri, headers: AuthSession.authHeaders());
@@ -471,10 +515,12 @@ class OpportunityRemoteDataSource {
     );
 
     if (response.statusCode != 200) {
-      throw Exception(_extractApiError(
-        response.body,
-        fallback: 'Link search API is not available on the server.',
-      ));
+      throw Exception(
+        _extractApiError(
+          response.body,
+          fallback: 'Link search API is not available on the server.',
+        ),
+      );
     }
 
     final list = _extractList(jsonDecode(response.body));
@@ -485,7 +531,13 @@ class OpportunityRemoteDataSource {
     if (decoded is List) return decoded;
     if (decoded is! Map<String, dynamic>) return const [];
 
-    final directKeys = ['data', 'message', 'result', 'opportunities', 'follow_ups'];
+    final directKeys = [
+      'data',
+      'message',
+      'result',
+      'opportunities',
+      'follow_ups',
+    ];
     for (final key in directKeys) {
       final value = decoded[key];
       if (value is List) return value;
@@ -494,7 +546,13 @@ class OpportunityRemoteDataSource {
     for (final key in directKeys) {
       final value = decoded[key];
       if (value is Map<String, dynamic>) {
-        for (final nestedKey in ['items', 'results', 'data', 'opportunities', 'follow_ups']) {
+        for (final nestedKey in [
+          'items',
+          'results',
+          'data',
+          'opportunities',
+          'follow_ups',
+        ]) {
           final nested = value[nestedKey];
           if (nested is List) return nested;
         }
@@ -544,12 +602,17 @@ class OpportunityRemoteDataSource {
     final normalized = query.trim().toLowerCase();
     const values = ['Lead', 'Customer'];
     return values
-        .where((item) => normalized.isEmpty || item.toLowerCase().contains(normalized))
+        .where(
+          (item) =>
+              normalized.isEmpty || item.toLowerCase().contains(normalized),
+        )
         .map((item) => OpportunityOptionItemModel(value: item, label: item))
         .toList();
   }
 
-  Future<List<OpportunityOptionItemModel>> _searchLeadParties(String query) async {
+  Future<List<OpportunityOptionItemModel>> _searchLeadParties(
+    String query,
+  ) async {
     final uri = ApiConstants.uri(ApiConstants.leadsEndpoint).replace(
       queryParameters: {
         'limit_start': '0',
@@ -564,24 +627,32 @@ class OpportunityRemoteDataSource {
     );
 
     if (response.statusCode != 200) {
-      throw Exception(_extractApiError(
-        response.body,
-        fallback: 'Lead list API is not available on the server.',
-      ));
+      throw Exception(
+        _extractApiError(
+          response.body,
+          fallback: 'Lead list API is not available on the server.',
+        ),
+      );
     }
 
     final list = _extractList(jsonDecode(response.body));
-    return list.whereType<Map<String, dynamic>>().map((item) {
-      final value = item['id']?.toString() ?? item['name']?.toString() ?? '';
-      final label = item['display_name']?.toString() ??
-          item['company_name']?.toString() ??
-          value;
-      return OpportunityOptionItemModel(
-        value: value,
-        label: label,
-        description: item['status']?.toString() ?? '',
-      );
-    }).where((item) => item.value.isNotEmpty).toList();
+    return list
+        .whereType<Map<String, dynamic>>()
+        .map((item) {
+          final value =
+              item['id']?.toString() ?? item['name']?.toString() ?? '';
+          final label =
+              item['display_name']?.toString() ??
+              item['company_name']?.toString() ??
+              value;
+          return OpportunityOptionItemModel(
+            value: value,
+            label: label,
+            description: item['status']?.toString() ?? '',
+          );
+        })
+        .where((item) => item.value.isNotEmpty)
+        .toList();
   }
 
   Future<List<OpportunityOptionItemModel>> _searchCustomerParties(
@@ -605,22 +676,28 @@ class OpportunityRemoteDataSource {
     );
 
     if (response.statusCode != 200) {
-      throw Exception(_extractApiError(
-        response.body,
-        fallback: 'Customer API is not available on the server.',
-      ));
+      throw Exception(
+        _extractApiError(
+          response.body,
+          fallback: 'Customer API is not available on the server.',
+        ),
+      );
     }
 
     final list = _extractList(jsonDecode(response.body));
-    return list.whereType<Map<String, dynamic>>().map((item) {
-      final value = item['name']?.toString() ?? '';
-      final label = item['customer_name']?.toString() ?? value;
-      return OpportunityOptionItemModel(
-        value: value,
-        label: label,
-        description: item['customer_group']?.toString() ?? '',
-      );
-    }).where((item) => item.value.isNotEmpty).toList();
+    return list
+        .whereType<Map<String, dynamic>>()
+        .map((item) {
+          final value = item['name']?.toString() ?? '';
+          final label = item['customer_name']?.toString() ?? value;
+          return OpportunityOptionItemModel(
+            value: value,
+            label: label,
+            description: item['customer_group']?.toString() ?? '',
+          );
+        })
+        .where((item) => item.value.isNotEmpty)
+        .toList();
   }
 
   String _extractApiError(String body, {required String fallback}) {
@@ -661,19 +738,21 @@ class OpportunityRemoteDataSource {
   }
 
   Future<Map<String, String>> _getLeadPrefill(String leadName) async {
-    final uri = ApiConstants.uri(ApiConstants.leadDetailsEndpoint).replace(
-      queryParameters: {'lead_name': leadName},
-    );
+    final uri = ApiConstants.uri(
+      ApiConstants.leadDetailsEndpoint,
+    ).replace(queryParameters: {'lead_name': leadName});
     final response = await http.get(uri, headers: AuthSession.authHeaders());
     AppLogger.sales(
       'opportunity lead prefill response=${response.statusCode} body=${_preview(response.body)}',
     );
 
     if (response.statusCode != 200) {
-      throw Exception(_extractApiError(
-        response.body,
-        fallback: 'Lead details API is not available on the server.',
-      ));
+      throw Exception(
+        _extractApiError(
+          response.body,
+          fallback: 'Lead details API is not available on the server.',
+        ),
+      );
     }
 
     final decoded = jsonDecode(response.body);
@@ -697,19 +776,35 @@ class OpportunityRemoteDataSource {
     final status = payload['status'] is Map<String, dynamic>
         ? payload['status'] as Map<String, dynamic>
         : const <String, dynamic>{};
-    final displayName = identity['display_name']?.toString() ??
+    final displayName =
+        identity['display_name']?.toString() ??
         identity['lead_name']?.toString() ??
         identity['first_name']?.toString() ??
         '';
     final companyName = identity['company_name']?.toString() ?? '';
     final mobile = contact['mobile']?.toString() ?? '';
     final email = contact['email']?.toString() ?? '';
+    var contactPerson =
+        contact['contact_person']?.toString() ??
+        payload['contact_person']?.toString() ??
+        '';
     final city = address['city']?.toString() ?? '';
-    final leadStatus = status['current']?.toString() ?? '';
-    final leadSource = status['source']?.toString() ?? payload['source']?.toString() ?? '';
+    final leadSource =
+        status['source']?.toString() ?? payload['source']?.toString() ?? '';
+    final salesPerson =
+        payload['sales_person']?.toString() ??
+        payload['opportunity_owner']?.toString() ??
+        '';
     final shortAddress = read('short_address');
     final title = companyName.isNotEmpty ? companyName : displayName;
     final customerName = companyName.isNotEmpty ? companyName : displayName;
+    if (contactPerson.isEmpty) {
+      contactPerson = await _findContactPerson(
+        mobile: mobile,
+        email: email,
+        name: displayName,
+      );
+    }
 
     return {
       if (read('company').isNotEmpty) 'company': read('company'),
@@ -719,7 +814,10 @@ class OpportunityRemoteDataSource {
       if ((contact['phone']?.toString() ?? '').isNotEmpty)
         'phone': contact['phone'].toString(),
       if (mobile.isNotEmpty) 'mobile_no': mobile,
+      if (mobile.isNotEmpty) 'contact_mobile': mobile,
       if (email.isNotEmpty) 'email_id': email,
+      if (email.isNotEmpty) 'contact_email': email,
+      if (contactPerson.isNotEmpty) 'contact_person': contactPerson,
       if (city.isNotEmpty) 'city': city,
       if ((address['country']?.toString() ?? '').isNotEmpty)
         'country': address['country'].toString(),
@@ -728,7 +826,81 @@ class OpportunityRemoteDataSource {
       if (shortAddress.isNotEmpty) 'short_address': shortAddress,
       if (shortAddress.isNotEmpty) 'custom_address_site': shortAddress,
       if (leadSource.isNotEmpty) 'source': leadSource,
+      if (salesPerson.isNotEmpty) 'sales_person': salesPerson,
     };
+  }
+
+  Future<String> _findContactPerson({
+    required String mobile,
+    required String email,
+    required String name,
+  }) async {
+    final candidates = [
+      mobile,
+      email,
+      name,
+    ].map((item) => item.trim()).where((item) => item.isNotEmpty).toList();
+
+    for (final query in candidates) {
+      final contact = await _searchContactResource(query);
+      if (contact.isNotEmpty) return contact;
+    }
+
+    final query = candidates.isEmpty ? '' : candidates.first;
+    if (query.isEmpty) return '';
+
+    try {
+      final items = await searchLinkOptions(doctype: 'Contact', query: query);
+      if (items.isEmpty) return '';
+      return items.first.value;
+    } catch (e) {
+      AppLogger.error('opportunity contact prefill failed: $e');
+      return '';
+    }
+  }
+
+  Future<String> _searchContactResource(String query) async {
+    final normalized = query.trim();
+    if (normalized.isEmpty) return '';
+
+    final orFilters = [
+      ['Contact', 'name', 'like', '%$normalized%'],
+      ['Contact', 'first_name', 'like', '%$normalized%'],
+      ['Contact', 'mobile_no', 'like', '%$normalized%'],
+      ['Contact', 'phone', 'like', '%$normalized%'],
+      ['Contact', 'email_id', 'like', '%$normalized%'],
+    ];
+
+    final uri = ApiConstants.uri('/api/resource/Contact').replace(
+      queryParameters: {
+        'fields': jsonEncode([
+          'name',
+          'first_name',
+          'mobile_no',
+          'phone',
+          'email_id',
+        ]),
+        'or_filters': jsonEncode(orFilters),
+        'limit_page_length': '1',
+      },
+    );
+
+    try {
+      final response = await http.get(uri, headers: AuthSession.authHeaders());
+      AppLogger.sales(
+        'opportunity contact resource prefill query="$query" response=${response.statusCode} body=${_preview(response.body)}',
+      );
+      if (response.statusCode != 200) return '';
+
+      final list = _extractList(jsonDecode(response.body));
+      for (final item in list.whereType<Map<String, dynamic>>()) {
+        final contactName = item['name']?.toString() ?? '';
+        if (contactName.trim().isNotEmpty) return contactName;
+      }
+    } catch (e) {
+      AppLogger.error('opportunity contact resource prefill failed: $e');
+    }
+    return '';
   }
 
   Future<Map<String, String>> _getCustomerPrefill(String customerName) async {
@@ -739,10 +911,12 @@ class OpportunityRemoteDataSource {
     );
 
     if (response.statusCode != 200) {
-      throw Exception(_extractApiError(
-        response.body,
-        fallback: 'Customer details API is not available on the server.',
-      ));
+      throw Exception(
+        _extractApiError(
+          response.body,
+          fallback: 'Customer details API is not available on the server.',
+        ),
+      );
     }
 
     final decoded = jsonDecode(response.body);
