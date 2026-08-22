@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../localization/localization_extensions.dart';
+
 class ActionLoadingOverlay extends StatelessWidget {
   const ActionLoadingOverlay({
     super.key,
@@ -14,6 +16,7 @@ class ActionLoadingOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Stack(
       children: [
         child,
@@ -58,10 +61,10 @@ class ActionLoadingOverlay extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 6),
-                        const Text(
-                          'Please wait, this may take a moment.',
+                        Text(
+                          l10n.actionPleaseWait,
                           textAlign: TextAlign.center,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Color(0xFF64748B),
                             fontSize: 12,
                           ),

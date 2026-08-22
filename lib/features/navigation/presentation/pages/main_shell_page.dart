@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_branding.dart';
 import '../../../../core/constants/app_links.dart';
+import '../../../../core/localization/localization_extensions.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/pages/login_page.dart';
 import '../../../home/presentation/pages/home_page.dart';
@@ -16,6 +17,7 @@ import '../../../workflow_notifications/presentation/pages/workflow_notification
 import '../../../workflow_notifications/presentation/providers/workflow_notifications_provider.dart';
 import '../../../task_follow_up/presentation/pages/task_follow_ups_page.dart';
 import '../../../task_follow_up/presentation/providers/task_follow_up_notifications_provider.dart';
+import '../../../settings/presentation/pages/language_page.dart';
 
 class MainShellPage extends StatefulWidget {
   const MainShellPage({super.key});
@@ -37,15 +39,6 @@ class _MainShellPageState extends State<MainShellPage> {
     });
   }
 
-  static const _titles = [
-    "Home",
-    "Projects",
-    "Tasks",
-    "Sales",
-    "Purchases",
-    "Smart Advisor",
-  ];
-
   void _goTo(int i) {
     setState(() => _index = i);
     Navigator.of(context).maybePop();
@@ -56,7 +49,7 @@ class _MainShellPageState extends State<MainShellPage> {
     final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Could not open update link")),
+        SnackBar(content: Text(context.l10n.couldNotOpenUpdateLink)),
       );
     }
   }
@@ -65,6 +58,15 @@ class _MainShellPageState extends State<MainShellPage> {
   Widget build(BuildContext context) {
     final workflowNotifications = context
         .watch<WorkflowNotificationsProvider>();
+    final l10n = context.l10n;
+    final titles = [
+      l10n.navHome,
+      l10n.navProjects,
+      l10n.navTasks,
+      l10n.navSales,
+      l10n.navPurchases,
+      l10n.navSmartAdvisor,
+    ];
     final pages = [
       HomePage(
         embedded: true,
@@ -84,7 +86,7 @@ class _MainShellPageState extends State<MainShellPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_titles[_index]),
+        title: Text(titles[_index]),
         actions: [
           IconButton(
             onPressed: () {
@@ -131,35 +133,35 @@ class _MainShellPageState extends State<MainShellPage> {
         child: SafeArea(
           child: ListView(
             children: [
-              const ListTile(
+              ListTile(
                 title: Text(
-                  "${AppBranding.appName} Menu",
+                  l10n.appMenu(AppBranding.appName),
                   style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
                 ),
               ),
               ListTile(
                 leading: const Icon(Icons.home_outlined),
-                title: const Text("Home"),
+                title: Text(l10n.navHome),
                 onTap: () => _goTo(0),
               ),
               ListTile(
                 leading: const Icon(Icons.work_outline_rounded),
-                title: const Text("Projects"),
+                title: Text(l10n.navProjects),
                 onTap: () => _goTo(1),
               ),
               ListTile(
                 leading: const Icon(Icons.task_alt_rounded),
-                title: const Text("Task Follow Ups"),
+                title: Text(l10n.drawerTaskFollowUps),
                 onTap: () => _goTo(2),
               ),
               ListTile(
                 leading: const Icon(Icons.storefront_outlined),
-                title: const Text("Sales"),
+                title: Text(l10n.navSales),
                 onTap: () => _goTo(3),
               ),
               ListTile(
                 leading: const Icon(Icons.badge_outlined),
-                title: const Text("Human Resources"),
+                title: Text(l10n.drawerHumanResources),
                 onTap: () {
                   Navigator.of(context).pop();
                   Navigator.push(
@@ -170,7 +172,7 @@ class _MainShellPageState extends State<MainShellPage> {
               ),
               ListTile(
                 leading: const Icon(Icons.warehouse_outlined),
-                title: const Text("Stores"),
+                title: Text(l10n.drawerStores),
                 onTap: () {
                   Navigator.of(context).pop();
                   Navigator.push(
@@ -181,24 +183,35 @@ class _MainShellPageState extends State<MainShellPage> {
               ),
               ListTile(
                 leading: const Icon(Icons.shopping_bag_outlined),
-                title: const Text("Purchases"),
+                title: Text(l10n.navPurchases),
                 onTap: () => _goTo(4),
               ),
               ListTile(
                 leading: const Icon(Icons.smart_toy_outlined),
-                title: const Text("Smart Advisor"),
+                title: Text(l10n.navSmartAdvisor),
                 onTap: () => _goTo(5),
+              ),
+              ListTile(
+                leading: const Icon(Icons.language_rounded),
+                title: Text(l10n.language),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LanguagePage()),
+                  );
+                },
               ),
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.system_update_alt_rounded),
-                title: const Text("Update App"),
-                subtitle: const Text("Download latest version"),
+                title: Text(l10n.drawerUpdateApp),
+                subtitle: Text(l10n.drawerDownloadLatestVersion),
                 onTap: _openUpdateLink,
               ),
               ListTile(
                 leading: const Icon(Icons.logout_rounded),
-                title: const Text("Logout"),
+                title: Text(l10n.drawerLogout),
                 onTap: () {
                   context.read<AuthProvider>().logout();
                   Navigator.pushAndRemoveUntil(
@@ -218,27 +231,30 @@ class _MainShellPageState extends State<MainShellPage> {
         currentIndex: _index,
         type: BottomNavigationBarType.fixed,
         onTap: _goTo,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: "Home",
+            icon: const Icon(Icons.home_outlined),
+            label: l10n.navHome,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.work_outline_rounded),
-            label: "Projects",
-          ),
-          BottomNavigationBarItem(icon: _TaskNavIcon(), label: "Tasks"),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.storefront_outlined),
-            label: "Sales",
+            icon: const Icon(Icons.work_outline_rounded),
+            label: l10n.navProjects,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_bag_outlined),
-            label: "Purchases",
+            icon: const _TaskNavIcon(),
+            label: l10n.navTasks,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.smart_toy_outlined),
-            label: "AI",
+            icon: const Icon(Icons.storefront_outlined),
+            label: l10n.navSales,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.shopping_bag_outlined),
+            label: l10n.navPurchases,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.smart_toy_outlined),
+            label: l10n.navAi,
           ),
         ],
       ),

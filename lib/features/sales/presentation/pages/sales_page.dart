@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import '../../lead/presentation/pages/leads_page.dart';
 import '../../opportunity/presentation/pages/opportunities_page.dart';
 import '../../opportunity/presentation/widgets/opportunity_scope.dart';
@@ -13,6 +14,7 @@ class SalesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final body = Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -25,8 +27,8 @@ class SalesPage extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           _SalesCard(
-            title: "Leads",
-            subtitle: "Potential customers and contacts",
+            title: l10n.salesLeads,
+            subtitle: l10n.salesLeadsSubtitle,
             icon: Icons.person_add_alt_1_rounded,
             color: Color(0xFFFFEDD5),
             onTap: () {
@@ -38,34 +40,31 @@ class SalesPage extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _SalesCard(
-            title: "Opportunities",
-            subtitle: "Open sales opportunities",
+            title: l10n.salesOpportunities,
+            subtitle: l10n.salesOpportunitiesSubtitle,
             icon: Icons.trending_up_rounded,
             color: Color(0xFFFFF3C7),
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const OpportunityScope(
-                    child: OpportunitiesPage(),
-                  ),
+                  builder: (_) =>
+                      const OpportunityScope(child: OpportunitiesPage()),
                 ),
               );
             },
           ),
           const SizedBox(height: 12),
           _SalesCard(
-            title: "Quotations",
-            subtitle: "Sales quotations overview",
+            title: l10n.salesQuotations,
+            subtitle: l10n.salesQuotationsSubtitle,
             icon: Icons.request_quote_rounded,
             color: Color(0xFFE0F2FE),
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const QuotationScope(
-                    child: QuotationsPage(),
-                  ),
+                  builder: (_) => const QuotationScope(child: QuotationsPage()),
                 ),
               );
             },
@@ -76,7 +75,7 @@ class SalesPage extends StatelessWidget {
 
     if (embedded) return body;
     return Scaffold(
-      appBar: AppBar(title: const Text("Sales")),
+      appBar: AppBar(title: Text(l10n.salesTitle)),
       body: body,
     );
   }
@@ -110,12 +109,18 @@ class _SalesCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           onTap: onTap,
           child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 10,
+            ),
             leading: CircleAvatar(
               backgroundColor: Colors.white,
               child: Icon(icon, color: const Color(0xFF7C2D12)),
             ),
-            title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+            title: Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
             subtitle: Text(subtitle),
             trailing: const Icon(Icons.chevron_right_rounded),
           ),

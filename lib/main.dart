@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'core/constants/app_branding.dart';
+import 'core/localization/locale_provider.dart';
+import 'l10n/app_localizations.dart';
 
 // Auth
 import 'features/auth/presentation/providers/auth_provider.dart';
@@ -92,7 +95,11 @@ import 'features/stores/domain/usecases/get_material_handovers_usecase.dart';
 import 'features/stores/domain/usecases/get_material_return_options_usecase.dart';
 import 'features/stores/presentation/providers/material_handovers_provider.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final localeProvider = LocaleProvider();
+  await localeProvider.load();
+
   final authRepo = AuthRepositoryImpl();
   final loginUseCase = LoginUseCase(authRepo);
 
@@ -218,6 +225,7 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider.value(value: localeProvider),
         ChangeNotifierProvider(
           create: (_) => AuthProvider(loginUseCase)..restoreSession(),
         ),
@@ -338,6 +346,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localeProvider = context.watch<LocaleProvider>();
     final colorScheme = ColorScheme.fromSeed(
       seedColor: AppBranding.electricBlue,
       brightness: Brightness.light,
@@ -345,6 +354,14 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       title: AppBranding.appName,
+      locale: localeProvider.locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

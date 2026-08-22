@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import 'material_handovers_page.dart';
 
 class StoresPage extends StatelessWidget {
@@ -7,8 +8,9 @@ class StoresPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: const Text('Stores')),
+      appBar: AppBar(title: Text(l10n.storesTitle)),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -27,14 +29,14 @@ class StoresPage extends StatelessWidget {
           children: [
             const _StoresHeroCard(),
             const SizedBox(height: 18),
-            const Text(
-              'Stores Services',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+            Text(
+              l10n.storesServices,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 10),
             _StoreServiceCard(
-              title: 'Material Transfer Handover',
-              subtitle: 'Confirm pickup, delivery, and return unused material.',
+              title: l10n.storesMaterialTransferHandover,
+              subtitle: l10n.storesMaterialTransferSubtitle,
               icon: Icons.inventory_2_outlined,
               enabled: true,
               gradient: const [Color(0xFF92400E), Color(0xFFF97316)],
@@ -48,23 +50,23 @@ class StoresPage extends StatelessWidget {
               },
             ),
             const SizedBox(height: 12),
-            const _StoreServiceCard(
-              title: 'Stock Balance',
-              subtitle: 'View item availability by warehouse.',
+            _StoreServiceCard(
+              title: l10n.storesStockBalance,
+              subtitle: l10n.storesStockBalanceSubtitle,
               icon: Icons.warehouse_outlined,
               enabled: false,
             ),
             const SizedBox(height: 12),
-            const _StoreServiceCard(
-              title: 'Stock Requests',
-              subtitle: 'Request materials for projects and operations.',
+            _StoreServiceCard(
+              title: l10n.storesStockRequests,
+              subtitle: l10n.storesStockRequestsSubtitle,
               icon: Icons.assignment_add,
               enabled: false,
             ),
             const SizedBox(height: 12),
-            const _StoreServiceCard(
-              title: 'Stock Reports',
-              subtitle: 'Review transfers, returns, and consumption reports.',
+            _StoreServiceCard(
+              title: l10n.storesStockReports,
+              subtitle: l10n.storesStockReportsSubtitle,
               icon: Icons.bar_chart_rounded,
               enabled: false,
             ),
@@ -80,6 +82,7 @@ class _StoresHeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -97,12 +100,12 @@ class _StoresHeroCard extends StatelessWidget {
           ),
         ],
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              CircleAvatar(
+              const CircleAvatar(
                 radius: 28,
                 backgroundColor: Colors.white24,
                 child: Icon(
@@ -111,23 +114,23 @@ class _StoresHeroCard extends StatelessWidget {
                   size: 30,
                 ),
               ),
-              Spacer(),
-              Chip(label: Text('Stores Mode')),
+              const Spacer(),
+              Chip(label: Text(l10n.storesMode)),
             ],
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
           Text(
-            'Stores',
-            style: TextStyle(
+            l10n.storesTitle,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 32,
               fontWeight: FontWeight.w900,
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
-            'Document material pickup, delivery, and returns with photo evidence.',
-            style: TextStyle(color: Colors.white70, height: 1.35),
+            l10n.storesHeroDescription,
+            style: const TextStyle(color: Colors.white70, height: 1.35),
           ),
         ],
       ),
@@ -232,15 +235,16 @@ class _SoonBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
         color: const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(999),
       ),
-      child: const Text(
-        'Coming Soon',
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+      child: Text(
+        l10n.comingSoon,
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
       ),
     );
   }

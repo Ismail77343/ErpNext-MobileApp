@@ -4,8 +4,10 @@ class OpportunityModel extends Opportunity {
   const OpportunityModel({
     required super.name,
     required super.opportunityName,
+    required super.partyName,
     required super.firstName,
     required super.companyName,
+    required super.content,
     required super.email,
     required super.mobileNo,
     required super.status,
@@ -35,24 +37,29 @@ class OpportunityModel extends Opportunity {
     return OpportunityModel(
       name: name,
       opportunityName: name,
+      partyName: json['party_name']?.toString() ?? '',
       firstName: _readFirstName(json),
       companyName: json['company_name']?.toString() ?? '',
-      email: json['email_id']?.toString() ??
-          contactMap['email']?.toString() ??
-          '',
-      mobileNo: json['mobile_no']?.toString() ??
+      content: json['content']?.toString() ?? '',
+      email:
+          json['email_id']?.toString() ?? contactMap['email']?.toString() ?? '',
+      mobileNo:
+          json['mobile_no']?.toString() ??
           contactMap['mobile']?.toString() ??
           '',
       status: json['status']?.toString() ?? '',
       source: json['source']?.toString() ?? '',
       lastModified: json['modified']?.toString() ?? '',
-      lastUpdateDate: json['last_update_date']?.toString() ??
+      lastUpdateDate:
+          json['last_update_date']?.toString() ??
           summaryMap['last_update_date']?.toString() ??
           '',
-      nextFollowUpDate: json['next_follow_up_date']?.toString() ??
+      nextFollowUpDate:
+          json['next_follow_up_date']?.toString() ??
           summaryMap['next_follow_up_date']?.toString() ??
           '',
-      lastFollowUpReport: json['last_follow_up_report']?.toString() ??
+      lastFollowUpReport:
+          json['last_follow_up_report']?.toString() ??
           summaryMap['last_follow_up_report']?.toString() ??
           '',
       hasFollowUp: _toBool(
@@ -86,7 +93,9 @@ class OpportunityModel extends Opportunity {
     if (displayName != null && displayName.isNotEmpty) return displayName;
 
     final opportunityName = json['opportunity_name']?.toString();
-    if (opportunityName != null && opportunityName.isNotEmpty) return opportunityName;
+    if (opportunityName != null && opportunityName.isNotEmpty) {
+      return opportunityName;
+    }
 
     final company = json['company_name']?.toString();
     if (company != null && company.isNotEmpty) return company;

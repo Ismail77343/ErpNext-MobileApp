@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:erp_mobile_app/core/constants/app_branding.dart';
+import 'package:erp_mobile_app/core/localization/localization_extensions.dart';
 import 'package:erp_mobile_app/core/utils/app_logger.dart';
 import '../../../navigation/presentation/pages/main_shell_page.dart';
 import '../providers/auth_provider.dart';
@@ -37,7 +38,9 @@ class _LoginPageState extends State<LoginPage> {
     } else {
       AppLogger.error('login failed: ${authProvider.error ?? "unknown error"}');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(authProvider.error ?? "Login Failed")),
+        SnackBar(
+          content: Text(authProvider.error ?? context.l10n.authLoginFailed),
+        ),
       );
     }
   }
@@ -53,6 +56,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Scaffold(
       body: Container(
@@ -116,7 +120,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          "Sign in to continue",
+                          l10n.authSignInToContinue,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: Colors.black54,
                           ),
@@ -126,19 +130,18 @@ class _LoginPageState extends State<LoginPage> {
                           controller: emailController,
                           keyboardType: TextInputType.emailAddress,
                           decoration: const InputDecoration(
-                            labelText: "Email",
                             prefixIcon: Icon(Icons.alternate_email_rounded),
                             border: OutlineInputBorder(),
-                          ),
+                          ).copyWith(labelText: l10n.authEmail),
                         ),
                         const SizedBox(height: 14),
                         TextField(
                           controller: passwordController,
                           obscureText: true,
-                          decoration: const InputDecoration(
-                            labelText: "Password",
+                          decoration: InputDecoration(
+                            labelText: l10n.authPassword,
                             prefixIcon: Icon(Icons.lock_outline_rounded),
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -150,7 +153,7 @@ class _LoginPageState extends State<LoginPage> {
                                 setState(() => rememberMe = value ?? false);
                               },
                             ),
-                            const Text("Remember me"),
+                            Text(l10n.authRememberMe),
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -168,7 +171,7 @@ class _LoginPageState extends State<LoginPage> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                label: const Text("Login"),
+                                label: Text(l10n.authLogin),
                               ),
                       ],
                     ),

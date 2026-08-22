@@ -31,11 +31,11 @@ class _OpportunityDetailsPageState extends State<OpportunityDetailsPage> {
 
   Future<void> _openEditForm() async {
     final provider = context.read<OpportunityDetailsProvider>();
+    final navigator = Navigator.of(context);
     final details = provider.details;
     if (details == null) return;
 
-    final changed = await Navigator.push<bool>(
-      context,
+    final changed = await navigator.push<bool>(
       MaterialPageRoute(
         builder: (_) => OpportunityFormPage(
           opportunityName: widget.opportunityName,
@@ -46,19 +46,25 @@ class _OpportunityDetailsPageState extends State<OpportunityDetailsPage> {
 
     if (changed == true && mounted) {
       await provider.load(widget.opportunityName);
-      Navigator.pop(context, true);
+      if (!mounted) return;
+      navigator.pop(true);
     }
   }
 
   Future<void> _openAddFollowUpDialog() async {
+    final provider = context.read<OpportunityDetailsProvider>();
+    final messenger = ScaffoldMessenger.of(context);
     final saved = await showDialog<bool>(
       context: context,
-      builder: (_) => _AddOpportunityFollowUpDialog(opportunityName: widget.opportunityName),
+      builder: (_) => _AddOpportunityFollowUpDialog(
+        opportunityName: widget.opportunityName,
+      ),
     );
 
     if (saved == true && mounted) {
-      await context.read<OpportunityDetailsProvider>().load(widget.opportunityName);
-      ScaffoldMessenger.of(context).showSnackBar(
+      await provider.load(widget.opportunityName);
+      if (!mounted) return;
+      messenger.showSnackBar(
         const SnackBar(content: Text('Follow up added successfully')),
       );
     }
@@ -87,82 +93,82 @@ class _OpportunityDetailsPageState extends State<OpportunityDetailsPage> {
       body: provider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : provider.error != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Text(
-                      provider.error!,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.red),
-                    ),
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  provider.error!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+            )
+          : details == null
+          ? const Center(child: Text('No opportunity details found'))
+          : RefreshIndicator(
+              onRefresh: () => provider.load(widget.opportunityName),
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                children: [
+                  _OpportunitySummaryCard(data: details.data),
+                  const SizedBox(height: 16),
+                  _QuickActionsCard(data: details.data),
+                  const SizedBox(height: 16),
+                  _SectionTitle(
+                    title: 'Opportunity Data',
+                    actionLabel: 'Edit',
+                    onTap: _openEditForm,
                   ),
-                )
-              : details == null
-                  ? const Center(child: Text('No opportunity details found'))
-                  : RefreshIndicator(
-                      onRefresh: () => provider.load(widget.opportunityName),
-                      child: ListView(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                        children: [
-                          _OpportunitySummaryCard(data: details.data),
-                          const SizedBox(height: 16),
-                          _QuickActionsCard(data: details.data),
-                          const SizedBox(height: 16),
-                          _SectionTitle(
-                            title: 'Opportunity Data',
-                            actionLabel: 'Edit',
-                            onTap: _openEditForm,
+                  const SizedBox(height: 8),
+                  ...details.data.entries
+                      .where((entry) => entry.value != null)
+                      .where(
+                        (entry) => entry.value.toString().trim().isNotEmpty,
+                      )
+                      .map(
+                        (entry) => Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            title: Text(_labelFromKey(entry.key)),
+                            subtitle: Text(entry.value.toString()),
                           ),
-                          const SizedBox(height: 8),
-                          ...details.data.entries
-                              .where((entry) => entry.value != null)
-                              .where(
-                                (entry) => entry.value.toString().trim().isNotEmpty,
-                              )
-                              .map(
-                                (entry) => Card(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  child: ListTile(
-                                    title: Text(_labelFromKey(entry.key)),
-                                    subtitle: Text(entry.value.toString()),
-                                  ),
-                                ),
-                              ),
-                          const SizedBox(height: 12),
-                          _SectionTitle(
-                            title: 'Follow Ups',
-                            actionLabel: 'Add',
-                            onTap: _openAddFollowUpDialog,
-                          ),
-                          const SizedBox(height: 8),
-                          if (details.followUps.isEmpty)
-                            const Card(
-                              child: Padding(
-                                padding: EdgeInsets.all(16),
-                                child: Text('No follow ups available'),
-                              ),
-                            )
-                          else
-                            ...details.followUps.map(
-                              (item) => _FollowUpCard(followUp: item),
-                            ),
-                          const SizedBox(height: 12),
-                          const _SectionTitle(title: 'Activity Log'),
-                          const SizedBox(height: 8),
-                          if (details.activityLog.isEmpty)
-                            const Card(
-                              child: Padding(
-                                padding: EdgeInsets.all(16),
-                                child: Text('No activity log available'),
-                              ),
-                            )
-                          else
-                            ...details.activityLog.map(
-                              (item) => _ActivityCard(activity: item),
-                            ),
-                        ],
+                        ),
                       ),
+                  const SizedBox(height: 12),
+                  _SectionTitle(
+                    title: 'Follow Ups',
+                    actionLabel: 'Add',
+                    onTap: _openAddFollowUpDialog,
+                  ),
+                  const SizedBox(height: 8),
+                  if (details.followUps.isEmpty)
+                    const Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text('No follow ups available'),
+                      ),
+                    )
+                  else
+                    ...details.followUps.map(
+                      (item) => _FollowUpCard(followUp: item),
                     ),
+                  const SizedBox(height: 12),
+                  const _SectionTitle(title: 'Activity Log'),
+                  const SizedBox(height: 8),
+                  if (details.activityLog.isEmpty)
+                    const Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text('No activity log available'),
+                      ),
+                    )
+                  else
+                    ...details.activityLog.map(
+                      (item) => _ActivityCard(activity: item),
+                    ),
+                ],
+              ),
+            ),
     );
   }
 }
@@ -173,10 +179,12 @@ class _AddOpportunityFollowUpDialog extends StatefulWidget {
   final String opportunityName;
 
   @override
-  State<_AddOpportunityFollowUpDialog> createState() => _AddOpportunityFollowUpDialogState();
+  State<_AddOpportunityFollowUpDialog> createState() =>
+      _AddOpportunityFollowUpDialogState();
 }
 
-class _AddOpportunityFollowUpDialogState extends State<_AddOpportunityFollowUpDialog> {
+class _AddOpportunityFollowUpDialogState
+    extends State<_AddOpportunityFollowUpDialog> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _followUpDateController = TextEditingController(
     text: _today(),
@@ -517,18 +525,17 @@ class _SummaryChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
 }
 
 class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({
-    required this.title,
-    this.actionLabel,
-    this.onTap,
-  });
+  const _SectionTitle({required this.title, this.actionLabel, this.onTap});
 
   final String title;
   final String? actionLabel;
@@ -570,7 +577,9 @@ class _FollowUpCard extends StatelessWidget {
             ),
             if (followUp.expectedResultDate.isNotEmpty) ...[
               const SizedBox(height: 4),
-              Text('Expected Result: ${_displayDate(followUp.expectedResultDate)}'),
+              Text(
+                'Expected Result: ${_displayDate(followUp.expectedResultDate)}',
+              ),
             ],
             if (followUp.details.isNotEmpty) ...[
               const SizedBox(height: 8),
@@ -609,7 +618,7 @@ class _ActivityCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: ListTile(
-        opportunitying: const CircleAvatar(
+        leading: const CircleAvatar(
           backgroundColor: Color(0xFFFFEDD5),
           child: Icon(Icons.history_rounded, color: Color(0xFF9A3412)),
         ),
@@ -745,8 +754,14 @@ _ParsedActivityDescription _parseActivityDescription(String raw) {
   if (anchor != null) {
     final href = anchor.group(1) ?? '';
     final label = anchor.group(2) ?? '';
-    final prefix = raw.substring(0, anchor.start).replaceAll(RegExp(r'<[^>]+>'), '').trim();
-    final suffix = raw.substring(anchor.end).replaceAll(RegExp(r'<[^>]+>'), '').trim();
+    final prefix = raw
+        .substring(0, anchor.start)
+        .replaceAll(RegExp(r'<[^>]+>'), '')
+        .trim();
+    final suffix = raw
+        .substring(anchor.end)
+        .replaceAll(RegExp(r'<[^>]+>'), '')
+        .trim();
     final textParts = [
       if (prefix.isNotEmpty) prefix,
       if (label.isNotEmpty) label,
@@ -768,8 +783,5 @@ class _ParsedActivityDescription {
   final String text;
   final String? link;
 
-  const _ParsedActivityDescription({
-    required this.text,
-    this.link,
-  });
+  const _ParsedActivityDescription({required this.text, this.link});
 }

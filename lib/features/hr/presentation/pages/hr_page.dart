@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import 'hr_attendance_page.dart';
 import '../providers/attendance_provider.dart';
 
@@ -12,10 +13,11 @@ class HrPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = const _HrModuleContent();
+    final l10n = context.l10n;
 
     if (embedded) return content;
     return Scaffold(
-      appBar: AppBar(title: const Text('Human Resources')),
+      appBar: AppBar(title: Text(l10n.hrTitle)),
       body: content,
     );
   }
@@ -74,9 +76,9 @@ class _HrModuleContentState extends State<_HrModuleContent> {
       SnackBar(
         content: Text(
           success
-              ? 'Device verification request sent. Please wait for HR approval.'
+              ? context.l10n.hrDeviceVerificationSent
               : (currentAttendance.error ??
-                    'Unable to request device verification.'),
+                    context.l10n.hrDeviceVerificationRequestFailed),
         ),
       ),
     );
@@ -134,46 +136,49 @@ class _HrModuleContentState extends State<_HrModuleContent> {
                       : () => attendance.load(),
                 ),
                 const SizedBox(height: 18),
-                const Text(
-                  'HR Services',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+                Text(
+                  context.l10n.hrServices,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 _ServiceCard(
-                  title: 'Attendance',
+                  title: context.l10n.hrAttendance,
                   subtitle: attendance.canOpenAttendance
-                      ? 'Clock in and out with approved device and GPS.'
-                      : 'Mobile device approval is required before attendance.',
+                      ? context.l10n.hrAttendanceReadySubtitle
+                      : context.l10n.hrAttendanceApprovalRequiredSubtitle,
                   icon: Icons.fingerprint_rounded,
                   gradient: const [Color(0xFF0E7490), Color(0xFF06B6D4)],
                   enabled: true,
                   onTap: () => _openAttendance(attendance),
                 ),
                 const SizedBox(height: 12),
-                const _ServiceCard(
-                  title: 'Leave Request',
-                  subtitle: 'Request annual, sick, or emergency leave.',
+                _ServiceCard(
+                  title: context.l10n.hrLeaveRequest,
+                  subtitle: context.l10n.hrLeaveRequestSubtitle,
                   icon: Icons.beach_access_rounded,
                   enabled: false,
                 ),
                 const SizedBox(height: 12),
-                const _ServiceCard(
-                  title: 'Attendance Log',
-                  subtitle: 'Review your daily clock in and clock out history.',
+                _ServiceCard(
+                  title: context.l10n.hrAttendanceLog,
+                  subtitle: context.l10n.hrAttendanceLogSubtitle,
                   icon: Icons.history_rounded,
                   enabled: false,
                 ),
                 const SizedBox(height: 12),
-                const _ServiceCard(
-                  title: 'Attendance Report',
-                  subtitle: 'View monthly attendance summaries and exceptions.',
+                _ServiceCard(
+                  title: context.l10n.hrAttendanceReport,
+                  subtitle: context.l10n.hrAttendanceReportSubtitle,
                   icon: Icons.analytics_outlined,
                   enabled: false,
                 ),
                 const SizedBox(height: 12),
-                const _ServiceCard(
-                  title: 'Export PDF',
-                  subtitle: 'Download attendance reports as PDF files.',
+                _ServiceCard(
+                  title: context.l10n.hrExportPdf,
+                  subtitle: context.l10n.hrExportPdfSubtitle,
                   icon: Icons.picture_as_pdf_outlined,
                   enabled: false,
                 ),
@@ -212,13 +217,13 @@ class _PhoneNumberDialogState extends State<_PhoneNumberDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Verify Mobile Device'),
+      title: Text(context.l10n.hrVerifyMobileDevice),
       content: TextField(
         controller: _controller,
         keyboardType: TextInputType.phone,
         textInputAction: TextInputAction.done,
-        decoration: const InputDecoration(
-          labelText: 'Phone Number',
+        decoration: InputDecoration(
+          labelText: context.l10n.hrPhoneNumber,
           hintText: '+9665XXXXXXXX',
         ),
         autofocus: true,
@@ -230,9 +235,12 @@ class _PhoneNumberDialogState extends State<_PhoneNumberDialog> {
             FocusManager.instance.primaryFocus?.unfocus();
             Navigator.of(context).pop();
           },
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
-        FilledButton(onPressed: _submit, child: const Text('Send Request')),
+        FilledButton(
+          onPressed: _submit,
+          child: Text(context.l10n.hrSendRequest),
+        ),
       ],
     );
   }
@@ -251,13 +259,14 @@ class _DeviceVerificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final verification = attendance.deviceVerification;
     if (verification == null || !verification.required) {
-      return const _HrStatusCard(
-        message: 'Mobile device verification is not required.',
+      return _HrStatusCard(
+        message: l10n.hrDeviceVerificationNotRequired,
         icon: Icons.verified_user_outlined,
-        color: Color(0xFF0F766E),
-        backgroundColor: Color(0xFFE0F2F1),
+        color: const Color(0xFF0F766E),
+        backgroundColor: const Color(0xFFE0F2F1),
       );
     }
 
@@ -303,10 +312,10 @@ class _DeviceVerificationCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   isApproved
-                      ? 'Device Approved'
+                      ? l10n.hrDeviceApproved
                       : verification.isPending
-                      ? 'Pending HR Approval'
-                      : 'Device Verification Required',
+                      ? l10n.hrPendingApproval
+                      : l10n.hrDeviceVerificationRequired,
                   style: TextStyle(
                     color: color,
                     fontSize: 17,
@@ -328,7 +337,7 @@ class _DeviceVerificationCard extends StatelessWidget {
           if (verification.status.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
-              'Status: ${verification.status}',
+              l10n.hrStatusLabel(verification.status),
               style: TextStyle(color: color.withValues(alpha: 0.82)),
             ),
           ],
@@ -350,12 +359,12 @@ class _DeviceVerificationCard extends StatelessWidget {
                           ),
                         )
                       : const Icon(Icons.send_to_mobile_outlined),
-                  label: const Text('Request Verification'),
+                  label: Text(l10n.hrRequestVerification),
                 ),
               OutlinedButton.icon(
                 onPressed: onRefresh,
                 icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Refresh Status'),
+                label: Text(l10n.hrRefreshStatus),
               ),
             ],
           ),
@@ -408,6 +417,7 @@ class _HrWelcomeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -453,9 +463,9 @@ class _HrWelcomeCard extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: const Text(
-                  'HR Mode',
-                  style: TextStyle(
+                child: Text(
+                  l10n.hrMode,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
                   ),
@@ -464,18 +474,18 @@ class _HrWelcomeCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Human Resources',
-            style: TextStyle(
+          Text(
+            l10n.hrTitle,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 30,
               fontWeight: FontWeight.w900,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Start with attendance today. More employee services are ready to plug in next.',
-            style: TextStyle(
+          Text(
+            l10n.hrHeroDescription,
+            style: const TextStyle(
               color: Colors.white70,
               fontSize: 15,
               height: 1.35,
@@ -602,15 +612,16 @@ class _SoonBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
         color: const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(999),
       ),
-      child: const Text(
-        'Coming Soon',
-        style: TextStyle(
+      child: Text(
+        l10n.comingSoon,
+        style: const TextStyle(
           color: Color(0xFF64748B),
           fontSize: 11,
           fontWeight: FontWeight.w900,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_branding.dart';
+import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../hr/presentation/pages/hr_page.dart';
@@ -44,6 +45,7 @@ class _HomePageState extends State<HomePage> {
     final auth = context.watch<AuthProvider>();
     final projects = context.watch<ProjectsProvider>();
     final previewProjects = projects.projects.take(5).toList();
+    final l10n = context.l10n;
     final user = auth.user;
     final userName = (user?.name ?? '').trim().isNotEmpty
         ? user!.name
@@ -92,9 +94,9 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  const Text(
-                    'Welcome Back',
-                    style: TextStyle(
+                  Text(
+                    l10n.homeWelcomeBack,
+                    style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -123,8 +125,8 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 16),
             _HomeCard(
-              title: 'Sales',
-              subtitle: 'Open sales cards',
+              title: l10n.navSales,
+              subtitle: l10n.homeSalesSubtitle,
               icon: Icons.storefront_outlined,
               cardColor: const Color(0xFFFFF7E6),
               iconBg: const Color(0xFFFFD78A),
@@ -141,8 +143,8 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 12),
             _HomeCard(
-              title: 'Projects',
-              subtitle: 'Go to all projects',
+              title: l10n.navProjects,
+              subtitle: l10n.homeProjectsSubtitle,
               icon: Icons.work_outline_rounded,
               cardColor: const Color(0xFFE9F7F5),
               iconBg: const Color(0xFFBDEEE8),
@@ -159,8 +161,8 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 12),
             _HomeCard(
-              title: 'Human Resources',
-              subtitle: 'Attendance check-in and check-out',
+              title: l10n.drawerHumanResources,
+              subtitle: l10n.homeHrSubtitle,
               icon: Icons.badge_outlined,
               cardColor: const Color(0xFFEFF6FF),
               iconBg: const Color(0xFFBFDBFE),
@@ -177,8 +179,8 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 12),
             _HomeCard(
-              title: 'Stores',
-              subtitle: 'Material handover pickup, delivery, and returns',
+              title: l10n.drawerStores,
+              subtitle: l10n.homeStoresSubtitle,
               icon: Icons.warehouse_outlined,
               cardColor: const Color(0xFFFFF7ED),
               iconBg: const Color(0xFFFED7AA),
@@ -190,9 +192,9 @@ class _HomePageState extends State<HomePage> {
               },
             ),
             const SizedBox(height: 20),
-            const Text(
-              'My Projects',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            Text(
+              l10n.homeMyProjects,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 10),
             if (projects.isLoading)
@@ -211,10 +213,10 @@ class _HomePageState extends State<HomePage> {
                 ),
               )
             else if (projects.projects.isEmpty)
-              const Card(
+              Card(
                 child: Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Text('No projects found'),
+                  padding: const EdgeInsets.all(12),
+                  child: Text(l10n.homeNoProjectsFound),
                 ),
               )
             else
@@ -270,7 +272,7 @@ class _HomePageState extends State<HomePage> {
                       );
                     }
                   },
-                  child: const Text('Show all projects'),
+                  child: Text(l10n.homeShowAllProjects),
                 ),
               ),
           ],
