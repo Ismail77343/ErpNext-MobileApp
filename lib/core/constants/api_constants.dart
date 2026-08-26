@@ -93,6 +93,16 @@ class ApiConstants {
       "/api/method/mobile_api.api.get_mobile_task_follow_up_notifications";
   static const String markMobileTaskFollowUpReadEndpoint =
       "/api/method/mobile_api.api.mark_mobile_task_follow_up_read";
+  static const String registerMobilePushTokenEndpoint =
+      "/api/method/mobile_api.api.register_mobile_device_push_token";
+  static const String hrAttendanceContextEndpoint =
+      "/api/method/mobile_api.api.get_hr_attendance_context";
+  static const String mobileDeviceVerificationStatusEndpoint =
+      "/api/method/mobile_api.api.get_mobile_device_verification_status";
+  static const String requestMobileDeviceVerificationEndpoint =
+      "/api/method/mobile_api.api.request_mobile_device_verification";
+  static const String mobileEmployeeCheckinEndpoint =
+      "/api/method/mobile_api.api.mobile_employee_checkin";
   static const String materialTransferHandoversEndpoint =
       "/api/method/mobile_api.api.get_my_material_transfer_handovers";
   static const String materialTransferHandoverDetailsEndpoint =
@@ -105,16 +115,17 @@ class ApiConstants {
       "/api/method/mobile_api.api.get_material_transfer_return_options";
   static const String createMaterialTransferReturnEndpoint =
       "/api/method/mobile_api.api.create_material_transfer_return";
-  static const String hrAttendanceContextEndpoint =
-      "/api/method/mobile_api.api.get_hr_attendance_context";
-  static const String mobileDeviceVerificationStatusEndpoint =
-      "/api/method/mobile_api.api.get_mobile_device_verification_status";
-  static const String requestMobileDeviceVerificationEndpoint =
-      "/api/method/mobile_api.api.request_mobile_device_verification";
-  static const String mobileEmployeeCheckinEndpoint =
-      "/api/method/mobile_api.api.mobile_employee_checkin";
   static const String searchLinkEndpoint =
       "/api/method/frappe.desk.search.search_link";
 
   static Uri uri(String endpoint) => Uri.parse("$baseUrl$endpoint");
+
+  static Uri webSocketUri(String path) {
+    final base = Uri.parse(baseUrl);
+    final scheme = base.scheme == 'https' ? 'wss' : 'ws';
+    return base.replace(scheme: scheme, path: path);
+  }
+
+  static Uri get notificationsWebSocketUri =>
+      webSocketUri("/api/method/mobile_api.api.workflow_notifications_socket");
 }

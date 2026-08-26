@@ -1,9 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_branding.dart';
 import '../../../../core/constants/app_links.dart';
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/notifications/app_notification_payload.dart';
+import '../../../../core/notifications/local_notification_service.dart';
+import '../../../../core/notifications/push_token_registration_service.dart';
+import '../../../../core/notifications/realtime_notification_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/pages/login_page.dart';
 import '../../../home/presentation/pages/home_page.dart';
@@ -28,15 +34,102 @@ class MainShellPage extends StatefulWidget {
 
 class _MainShellPageState extends State<MainShellPage> {
   int _index = 0;
+  Timer? _notificationRefreshTimer;
+  final Set<String> _knownWorkflowNotificationIds = <String>{};
+  final Set<String> _knownTaskNotificationIds = <String>{};
+  bool _notificationSnapshotReady = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      context.read<WorkflowNotificationsProvider>().initialize();
-      context.read<TaskFollowUpNotificationsProvider>().refresh();
+      _initializeNotifications();
     });
+  }
+
+  @override
+  void dispose() {
+    _notificationRefreshTimer?.cancel();
+    RealtimeNotificationService.instance.stop();
+    super.dispose();
+  }
+
+  Future<void> _initializeNotifications() async {
+    LocalNotificationService.instance.onNotificationTap = (_) {
+      if (!mounted) return;
+      _openNotificationsPage();
+    };
+    RealtimeNotificationService.instance.onNotificationReceived = () {
+      if (!mounted) return;
+      _refreshNotificationBadges(showNewSystemNotifications: false);
+    };
+
+    await LocalNotificationService.instance.initialize();
+    await PushTokenRegistrationService.instance.registerCurrentDevice();
+    await RealtimeNotificationService.instance.start();
+    await _refreshNotificationBadges(showNewSystemNotifications: false);
+
+    _notificationRefreshTimer?.cancel();
+    _notificationRefreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      _refreshNotificationBadges(showNewSystemNotifications: true);
+    });
+  }
+
+  Future<void> _refreshNotificationBadges({
+    required bool showNewSystemNotifications,
+  }) async {
+    final workflowProvider = context.read<WorkflowNotificationsProvider>();
+    final taskProvider = context.read<TaskFollowUpNotificationsProvider>();
+
+    await Future.wait([
+      workflowProvider.refresh(),
+      taskProvider.refresh(),
+    ]);
+    if (!mounted) return;
+
+    if (!_notificationSnapshotReady) {
+      _knownWorkflowNotificationIds
+        ..clear()
+        ..addAll(workflowProvider.notifications.map((item) => item.id));
+      _knownTaskNotificationIds
+        ..clear()
+        ..addAll(taskProvider.notifications.map((item) => item.id));
+      _notificationSnapshotReady = true;
+      return;
+    }
+
+    if (!showNewSystemNotifications) return;
+
+    for (final item in workflowProvider.notifications) {
+      if (!_knownWorkflowNotificationIds.add(item.id)) continue;
+      await LocalNotificationService.instance.show(
+        AppNotificationPayload(
+          type: 'workflow',
+          id: item.id,
+          title: item.displayName.isEmpty ? item.documentName : item.displayName,
+          body: item.message.isEmpty
+              ? '${item.doctype} ${item.documentName}'
+              : item.message,
+          doctype: item.doctype,
+          documentName: item.documentName,
+          documentUrl: item.documentUrl,
+        ),
+      );
+    }
+
+    for (final item in taskProvider.notifications) {
+      if (!_knownTaskNotificationIds.add(item.id)) continue;
+      await LocalNotificationService.instance.show(
+        AppNotificationPayload(
+          type: 'task_follow_up',
+          id: item.id,
+          title: item.subject.isEmpty ? 'Task Follow Up' : item.subject,
+          body: '${item.status} - ${item.progress}%',
+          taskFollowUpName: item.id,
+        ),
+      );
+    }
   }
 
   void _goTo(int i) {
@@ -52,6 +145,13 @@ class _MainShellPageState extends State<MainShellPage> {
         SnackBar(content: Text(context.l10n.couldNotOpenUpdateLink)),
       );
     }
+  }
+
+  void _openNotificationsPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const WorkflowNotificationsPage()),
+    );
   }
 
   @override
@@ -89,14 +189,7 @@ class _MainShellPageState extends State<MainShellPage> {
         title: Text(titles[_index]),
         actions: [
           IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const WorkflowNotificationsPage(),
-                ),
-              );
-            },
+            onPressed: _openNotificationsPage,
             icon: Stack(
               clipBehavior: Clip.none,
               children: [
