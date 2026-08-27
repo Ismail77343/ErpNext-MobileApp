@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 
 import '../../data/services/attendance_location_service.dart' as gps;
+import '../../data/services/attendance_device_risk_service.dart';
 import '../../data/services/attendance_photo_service.dart';
 import '../../data/services/attendance_security_service.dart';
 import '../../data/services/mobile_device_identity_service.dart';
@@ -18,6 +19,7 @@ class AttendanceActionPreview {
   final double? distanceMeters;
   final AttendancePhotoCapture? photo;
   final bool photoRequired;
+  final AttendanceDeviceRiskResult securityRisk;
 
   const AttendanceActionPreview({
     required this.logType,
@@ -26,6 +28,7 @@ class AttendanceActionPreview {
     required this.distanceMeters,
     required this.photo,
     required this.photoRequired,
+    required this.securityRisk,
   });
 
   bool get isOutsideRange {
@@ -45,6 +48,7 @@ class AttendanceProvider extends ChangeNotifier {
   final gps.AttendanceLocationService locationService;
   final MobileDeviceIdentityService deviceIdentityService;
   final AttendancePhotoService photoService;
+  final AttendanceDeviceRiskService deviceRiskService;
 
   AttendanceProvider({
     required this.getAttendanceContextUseCase,
@@ -54,6 +58,7 @@ class AttendanceProvider extends ChangeNotifier {
     required this.locationService,
     required this.deviceIdentityService,
     required this.photoService,
+    required this.deviceRiskService,
   });
 
   bool _isLoading = false;
@@ -178,6 +183,12 @@ class AttendanceProvider extends ChangeNotifier {
     try {
       await securityService.verifyDeviceOwner();
       final position = await locationService.getCurrentLocation();
+      final securityRisk = await deviceRiskService.evaluate(
+        isMockLocation: position.isMocked,
+      );
+      if (securityRisk.hasRisk) {
+        throw Exception(securityRisk.blockingMessage);
+      }
       final distance = _distanceToSelectedLocation(position);
       final photoRequired = _isPhotoRequiredFor(nextLogType);
       final photo = photoRequired
@@ -194,6 +205,7 @@ class AttendanceProvider extends ChangeNotifier {
         distanceMeters: distance,
         photo: photo,
         photoRequired: photoRequired,
+        securityRisk: securityRisk,
       );
     } catch (e) {
       _error = _cleanError(e);
@@ -226,6 +238,12 @@ class AttendanceProvider extends ChangeNotifier {
         photoBase64: preview.photo?.base64,
         photoFilename: preview.photo?.filename,
         photoMimeType: preview.photo?.mimeType,
+        isMockLocation: preview.securityRisk.isMockLocation,
+        vpnDetected: preview.securityRisk.vpnDetected,
+        rootOrJailbreakDetected:
+            preview.securityRisk.rootOrJailbreakDetected,
+        securityFlags: preview.securityRisk.flags,
+        securityRiskLevel: preview.securityRisk.riskLevel,
       );
       await load(project: project);
       return true;

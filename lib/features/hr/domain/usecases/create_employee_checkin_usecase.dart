@@ -18,6 +18,11 @@ class CreateEmployeeCheckinUseCase {
     String? photoBase64,
     String? photoFilename,
     String? photoMimeType,
+    bool? isMockLocation,
+    bool? vpnDetected,
+    bool? rootOrJailbreakDetected,
+    List<String>? securityFlags,
+    String? securityRiskLevel,
   }) {
     return repository.createEmployeeCheckin(
       logType: logType,
@@ -31,6 +36,11 @@ class CreateEmployeeCheckinUseCase {
       photoBase64: photoBase64,
       photoFilename: photoFilename,
       photoMimeType: photoMimeType,
+      isMockLocation: isMockLocation,
+      vpnDetected: vpnDetected,
+      rootOrJailbreakDetected: rootOrJailbreakDetected,
+      securityFlags: securityFlags,
+      securityRiskLevel: securityRiskLevel,
     );
   }
 }

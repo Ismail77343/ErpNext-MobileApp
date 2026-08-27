@@ -4,11 +4,13 @@ class AttendanceLocation {
   final double latitude;
   final double longitude;
   final double accuracy;
+  final bool isMocked;
 
   const AttendanceLocation({
     required this.latitude,
     required this.longitude,
     required this.accuracy,
+    required this.isMocked,
   });
 }
 
@@ -44,6 +46,7 @@ class AttendanceLocationService {
       latitude: position.latitude,
       longitude: position.longitude,
       accuracy: position.accuracy,
+      isMocked: position.isMocked,
     );
   }
 }

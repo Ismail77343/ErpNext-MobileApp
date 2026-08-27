@@ -20,6 +20,11 @@ abstract class AttendanceRepository {
     String? photoBase64,
     String? photoFilename,
     String? photoMimeType,
+    bool? isMockLocation,
+    bool? vpnDetected,
+    bool? rootOrJailbreakDetected,
+    List<String>? securityFlags,
+    String? securityRiskLevel,
   });
 
   Future<AttendanceDeviceVerification> requestMobileDeviceVerification({

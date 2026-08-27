@@ -90,12 +90,18 @@ class AttendanceRemoteDataSource {
     String? photoBase64,
     String? photoFilename,
     String? photoMimeType,
+    bool? isMockLocation,
+    bool? vpnDetected,
+    bool? rootOrJailbreakDetected,
+    List<String>? securityFlags,
+    String? securityRiskLevel,
   }) async {
     final body = {
       'log_type': logType,
       'latitude': latitude,
       'longitude': longitude,
       'accuracy': accuracy,
+      'location_accuracy': accuracy,
       if (attendanceLocation != null && attendanceLocation.isNotEmpty)
         'attendance_location': attendanceLocation,
       if (deviceId != null && deviceId.isNotEmpty) 'device_id': deviceId,
@@ -107,6 +113,13 @@ class AttendanceRemoteDataSource {
         'photo_filename': photoFilename,
       if (photoMimeType != null && photoMimeType.isNotEmpty)
         'photo_mime_type': photoMimeType,
+      if (isMockLocation != null) 'is_mock_location': isMockLocation,
+      if (vpnDetected != null) 'vpn_detected': vpnDetected,
+      if (rootOrJailbreakDetected != null)
+        'root_or_jailbreak_detected': rootOrJailbreakDetected,
+      if (securityFlags != null) 'security_flags': securityFlags,
+      if (securityRiskLevel != null && securityRiskLevel.isNotEmpty)
+        'security_risk_level': securityRiskLevel,
     };
 
     AppLogger.info(
@@ -234,6 +247,9 @@ class AttendanceRemoteDataSource {
     }
     if (text.contains('INVALID_CHECKIN_PHOTO')) {
       return 'Attendance photo is invalid. Please capture the photo again.';
+    }
+    if (text.contains('ATTENDANCE_SECURITY_RISK')) {
+      return 'Attendance is blocked for security reasons.';
     }
     return text;
   }

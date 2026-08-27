@@ -15,6 +15,7 @@ import 'features/navigation/presentation/pages/main_shell_page.dart';
 import 'features/hr/data/datasources/attendance_remote_datasource.dart';
 import 'features/hr/data/repositories/attendance_repository_impl.dart';
 import 'features/hr/data/services/attendance_location_service.dart';
+import 'features/hr/data/services/attendance_device_risk_service.dart';
 import 'features/hr/data/services/attendance_photo_service.dart';
 import 'features/hr/data/services/attendance_security_service.dart';
 import 'features/hr/data/services/mobile_device_identity_service.dart';
@@ -295,6 +296,7 @@ Future<void> main() async {
             locationService: AttendanceLocationService(),
             deviceIdentityService: MobileDeviceIdentityService(),
             photoService: AttendancePhotoService(),
+            deviceRiskService: AttendanceDeviceRiskService(),
           ),
         ),
         ChangeNotifierProvider(
